@@ -227,7 +227,7 @@
 
   /* TOOLTIPS */
   .tip-wrap { position:relative; display:inline-flex; align-items:center; gap:5px; }
-  .tip-icon { width:15px; height:15px; border-radius:50%; background:var(--border); color:var(--muted); font-size: 0.72rem; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-family:'IBM Plex Mono',ui-monospace,'Roboto Mono','Droid Sans Mono',monospace; font-weight:700; flex-shrink:0; border:1px solid var(--muted); }
+  .tip-icon { width:18px; height:18px; border-radius:50%; background:var(--border); color:var(--accent); font-size: 0.75rem; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-family:'IBM Plex Mono',ui-monospace,'Roboto Mono','Droid Sans Mono',monospace; font-weight:700; flex-shrink:0; border:1px solid var(--accent); }
   .tip-icon:hover { background:var(--accent); color:#000; border-color:var(--accent); }
   .tip-box { display:none; position:absolute; bottom:calc(100% + 8px); left:0; background:#1e2029; border:1px solid var(--accent); border-radius:10px; padding:10px 12px; font-size: 0.8rem; color:var(--text); line-height:1.5; width:220px; z-index:100; box-shadow:0 4px 16px rgba(0,0,0,0.4); font-family:'IBM Plex Mono',ui-monospace,'Roboto Mono','Droid Sans Mono',monospace; }
   .tip-box::after { content:''; position:absolute; top:100%; left:14px; border:6px solid transparent; border-top-color:var(--accent); }
@@ -246,7 +246,7 @@
   .adv-score { display:inline-block; font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem; margin-bottom:4px; }
   .adv-typing::after { content:'▋'; animation:blink 0.8s step-end infinite; }
   @keyframes blink { 50% { opacity:0; } }
-  .dash-tip { font-size: 0.72rem;color:var(--muted);cursor:help;margin-left:4px;opacity:0.7;position:relative; }
+  .dash-tip { font-size: 0.82rem;color:var(--accent);cursor:help;margin-left:4px;opacity:0.9;position:relative; }
   .dash-tip:hover::after { content:attr(data-tip);position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size: 0.77rem;color:var(--text);white-space:normal;width:200px;z-index:100;line-height:1.5;box-shadow:0 4px 16px rgba(0,0,0,0.4); }
   .summary-card { transition:border-color 0.2s, transform 0.15s; }
   .summary-card[onclick]:hover { border-color:var(--accent) !important; transform:scale(1.01); }
