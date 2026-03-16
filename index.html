@@ -1108,7 +1108,7 @@ let goalYears = 5;
 
 // PRO/FREE
 const FREE_LIMIT = 3;
-let isPro = localStorage.getItem('finfree_pro') === '1';
+let isPro = true; // v1.0 - všetko zadarmo
 
 function proGate(fn) {
   if (isPro) { fn(); } else { openUpgrade(); }
@@ -3271,7 +3271,7 @@ function renderForecast() {
 renderDashboard();
 updateProUI();
 const hpb = document.getElementById('header-pro-badge');
-if (hpb) hpb.innerHTML = isPro ? '<span class="pro-badge"><span style="color:#000">★</span> FULL</span>' : '<button class="btn-pro" style="font-size: 0.67rem;padding:2px 8px;" onclick="openUpgrade()">FREE</button>';
+if (hpb) hpb.innerHTML = '';
 
 // ONBOARDING
 // ── CASHFLOW DIAGRAM ──────────────────────────────────
