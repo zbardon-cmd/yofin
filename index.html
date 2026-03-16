@@ -264,7 +264,7 @@
 
 <header>
   <div style="display:flex;align-items:center;gap:8px;">
-    <h1><span style="color:var(--accent);font-size:1.2rem;">⬡</span> YoFiN</h1>
+    <h1 onclick="switchTab('dashboard')" style="cursor:pointer;"><span style="color:var(--accent);font-size:1.2rem;">⬡</span> YoFiN</h1>
     <span id="header-pro-badge"></span>
   </div>
   <div class="header-right">
@@ -291,7 +291,7 @@
   <div id="dash-empty" style="display:none;">
     <div style="text-align:center;padding:40px 16px;">
       <div style="font-size:3.5rem;margin-bottom:14px;">🚀</div>
-      <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:8px;">Vitaj vo YoFiN!</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:8px;">Vitaj v YoFiN!</div>
       <div style="font-size: 0.75rem;color:var(--muted);line-height:1.7;max-width:280px;margin:0 auto 20px;">Začni pridaním prvého príjmu alebo aktíva. Dashboard sa automaticky naplní tvojimi číslami.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:280px;margin:0 auto;">
         <button onclick="switchTab('prijmy')" style="background:var(--accent2);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size: 0.78rem;padding:12px;border:none;border-radius:12px;cursor:pointer;">💰 Príjem</button>
@@ -1788,6 +1788,7 @@ function renderGoalsProAreas() {
         <button class="btn-primary" onclick="exportJSON()">⬇ Záloha dát (JSON)</button>
         <button class="btn-primary" style="background:var(--accent3);margin-top:0" onclick="importJSON()">⬆ Obnoviť dáta (JSON)</button>
         <button class="btn-primary" style="background:#c070f0;margin-top:0" onclick="exportPDF()">⬇ Export report (HTML)</button>
+        <button class="btn-primary" style="background:var(--accent3);margin-top:0;opacity:0.8" onclick="deleteAllData()">🔄 Reset appky</button>
         <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
       </div>
     </div>`;
@@ -1804,6 +1805,7 @@ function renderGoalsProAreas() {
       <div style="display:flex;flex-direction:column;gap:8px;">
         <button class="btn-primary" onclick="exportJSON()">⬇ Záloha dát (JSON)</button>
         <button class="btn-primary" style="background:var(--accent3);margin-top:0" onclick="importJSON()">⬆ Obnoviť dáta (JSON)</button>
+        <button class="btn-primary" style="background:var(--accent3);margin-top:0;opacity:0.8" onclick="deleteAllData()">🔄 Reset appky</button>
         <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
       </div>
       <div class="pro-lock" style="margin-top:10px;">
@@ -1921,6 +1923,12 @@ function renderAssetDebtChart() {
 }
 
 // EXPORT / IMPORT
+function deleteAllData() {
+  if (!confirm('Naozaj chceš zmazať VŠETKY dáta? Táto akcia sa nedá vrátiť späť.')) return;
+  ['assets_zd','pasiva_zd','prijmy_zd','vydavky_zd','finfree_goal_exp','finfree_goal_tgt','diag_nodes','diag_edges','cf_hint_hidden'].forEach(k => localStorage.removeItem(k));
+  alert('✅ Všetky dáta boli zmazané.');
+  location.reload();
+}
 function exportJSON() {
   const data = { assets, pasiva, prijmy, vydavky, exported: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -3901,7 +3909,7 @@ function showOnboarding() {
   const steps = [
     {
       icon: '⬡',
-      title: 'Vitaj vo YoFiN',
+      title: 'Vitaj v YoFiN',
       color: 'var(--accent)',
       content: `
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
