@@ -1785,11 +1785,11 @@ function renderGoalsProAreas() {
     exportArea.innerHTML = `<div class="form-card">
       <p style="font-size: 0.84rem;color:var(--muted);margin-bottom:14px;">Exportuj svoje dáta pre zálohu alebo tlač.</p>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <button class="btn-primary" onclick="exportJSON()">⬇ Záloha dát (JSON)</button>
-        <button class="btn-primary" style="background:#000;border:2px solid #4af0a0;color:#4af0a0;margin-top:0" onclick="importJSON()">⬆ Obnoviť dáta (JSON)</button>
-        <button class="btn-primary" style="background:#c070f0;margin-top:0" onclick="exportPDF()">📄 REPORT</button>
+        <button class="btn-primary" style="background:#000;border:1px solid #f0c040;color:#f0c040;" onclick="exportJSON()">⬇ Záloha &nbsp; dát &nbsp; (JSON)</button>
+        <button class="btn-primary" style="background:#000;border:1px solid #4af0a0;color:#4af0a0;margin-top:0" onclick="importJSON()">⬆ Obnoviť &nbsp; dáta &nbsp; (JSON)</button>
+        <button class="btn-primary" style="background:#000;border:1px solid #c070f0;color:#c070f0;margin-top:0" onclick="exportPDF()">📄 &nbsp; REPORT</button>
         <div style="height:16px;"></div>
-        <button class="btn-primary" style="background:var(--accent3);margin-top:0;opacity:0.8" onclick="deleteAllData()">🔄 RESET</button>
+        <button class="btn-primary" style="background:#000;border:1px solid #f05060;color:#f05060;margin-top:0;opacity:1" onclick="deleteAllData()">🔄 &nbsp; RESET</button>
         <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
       </div>
     </div>`;
@@ -1804,10 +1804,10 @@ function renderGoalsProAreas() {
     exportArea.innerHTML = `<div class="form-card">
       <p style="font-size: 0.84rem;color:var(--muted);margin-bottom:14px;">Základná záloha dát je dostupná zadarmo.</p>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <button class="btn-primary" onclick="exportJSON()">⬇ Záloha dát (JSON)</button>
-        <button class="btn-primary" style="background:#000;border:2px solid #4af0a0;color:#4af0a0;margin-top:0" onclick="importJSON()">⬆ Obnoviť dáta (JSON)</button>
+        <button class="btn-primary" style="background:#000;border:1px solid #f0c040;color:#f0c040;" onclick="exportJSON()">⬇ Záloha &nbsp; dát &nbsp; (JSON)</button>
+        <button class="btn-primary" style="background:#000;border:1px solid #4af0a0;color:#4af0a0;margin-top:0" onclick="importJSON()">⬆ Obnoviť &nbsp; dáta &nbsp; (JSON)</button>
         <div style="height:16px;"></div>
-        <button class="btn-primary" style="background:var(--accent3);margin-top:0;opacity:0.8" onclick="deleteAllData()">🔄 RESET</button>
+        <button class="btn-primary" style="background:#000;border:1px solid #f05060;color:#f05060;margin-top:0;opacity:1" onclick="deleteAllData()">🔄 &nbsp; RESET</button>
         <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
       </div>
       <div class="pro-lock" style="margin-top:10px;">
