@@ -3743,12 +3743,25 @@ const _ZB_AVATAR_PLACEHOLDER = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABA
 function saveAdvisorResult(type) {
   const el = document.getElementById('adv-result-content');
   if (!el) return;
-  const text = el.innerText;
   const date = new Date().toLocaleDateString('sk-SK');
-  const blob = new Blob([`YoFiN – Analýza a riešenia\n${date}\n\n${text}`], {type:'text/plain'});
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>YoFiN Analýza</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:30px;max-width:640px;margin:0 auto;color:#222;}
+    h2{color:#b8860b;font-size:1.4rem;margin-bottom:4px;}
+    h3{color:#7b2d8b;font-size:1rem;margin-top:20px;}
+    .date{color:#888;font-size:0.85rem;margin-bottom:24px;}
+    strong{color:#7b2d8b;}
+    p{line-height:1.6;}
+  </style></head><body>
+  <h2>⬡ YoFiN – Analýza a riešenia</h2>
+  <div class="date">${date}</div>
+  ${el.innerHTML}
+  </body></html>`;
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `yofin-analyza-${type}-${new Date().toISOString().slice(0,10)}.txt`;
+  a.download = `yofin-analyza-${type}-${new Date().toISOString().slice(0,10)}.html`;
   a.click();
 }
 function printAdvisorResult() {
