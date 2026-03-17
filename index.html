@@ -246,6 +246,7 @@
   .adv-score { display:inline-block; font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem; margin-bottom:4px; }
   .adv-typing::after { content:'▋'; animation:blink 0.8s step-end infinite; }
   @keyframes blink { 50% { opacity:0; } }
+  @keyframes spin { to { transform:rotate(360deg); } }
   .dash-tip { font-size: 0.82rem;color:var(--accent);cursor:help;margin-left:4px;opacity:0.9;position:relative; }
   .dash-tip:hover::after { content:attr(data-tip);position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size: 0.77rem;color:var(--text);white-space:normal;width:200px;z-index:100;line-height:1.5;box-shadow:0 4px 16px rgba(0,0,0,0.4); }
   .summary-card { transition:border-color 0.2s, transform 0.15s; }
@@ -3879,9 +3880,10 @@ async function runAdvisor(type) {
   event.target.classList.add('active');
 
   const resultEl = document.getElementById('advisor-result');
-  resultEl.innerHTML = `<div style="text-align:center;padding:32px;color:#c070f0;">
-    <div style="font-size:2rem;margin-bottom:12px;animation:spin 1s linear infinite;display:inline-block;">⚙️</div>
-    <div style="font-size: 0.8rem;color:var(--muted);">Analyzujem tvoj finančný profil...</div>
+  resultEl.innerHTML = `<div style="text-align:center;padding:40px 16px;">
+    <div style="width:48px;height:48px;border:3px solid #2a1e3a;border-top:3px solid #c070f0;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div>
+    <div style="font-size:0.78rem;color:#c070f0;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Analyzujem</div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">AI skúma tvoj finančný profil...</div>
   </div>`;
 
   const ctx = buildFinancialContext();
