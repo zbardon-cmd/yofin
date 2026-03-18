@@ -753,8 +753,13 @@
   <!-- Header s + tlačidlom navrchu -->
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
     <div style="font-family:'Syne',sans-serif;font-size: 0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Prehľad výdavkov</div>
-    <button onclick="openAddVydavok()" style="width:40px;height:40px;border-radius:50%;background:var(--accent3);color:#fff;border:none;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(240,80,96,0.4);">+</button>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button onclick="openReceiptScanner()" title="Naskenovať bloček" style="width:40px;height:40px;border-radius:50%;background:var(--card);color:var(--accent3);border:1.5px solid var(--accent3);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(240,80,96,0.2);">📷</button>
+      <button onclick="openAddVydavok()" style="width:40px;height:40px;border-radius:50%;background:var(--accent3);color:#fff;border:none;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(240,80,96,0.4);">+</button>
+    </div>
   </div>
+  <input type="file" id="receipt-input-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleReceiptFile(this)">
+  <input type="file" id="receipt-input-gallery" accept="image/*" style="display:none;" onchange="handleReceiptFile(this)">
 
   <!-- Súhrn karty s novými farbami -->
   <div class="summary-grid" style="margin-bottom:10px;">
@@ -2016,7 +2021,8 @@ function exportPDF() {
   <table><tr><th>Názov</th><th>Typ</th><th>Zostatok</th><th>Splátka/mes</th><th>Úrok</th></tr>
   ${pasiva.map(p=>`<tr><td>${p.name}</td><td>${pasivaLabel(p.type)}</td><td class="neg">${fmt(p.balance)}</td><td class="neg">${fmt(p.payment)}</td><td>${p.rate?p.rate+'%':'—'}</td></tr>`).join('')}
   </table>
-  </body></html>`;
+  
+</body></html>`;
 
   const blob = new Blob([html], {type:'text/html'});
   const url = URL.createObjectURL(blob);
@@ -3760,7 +3766,8 @@ function saveAdvisorResult(type) {
   <h2>⬡ YoFiN – Analýza a riešenia</h2>
   <div class="date">${date}</div>
   ${el.innerHTML}
-  </body></html>`;
+  
+</body></html>`;
   const blob = new Blob([html], {type:'text/html;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -3776,7 +3783,8 @@ function printAdvisorResult() {
   h3{color:#b8860b;} strong{color:#7b2d8b;}</style></head>
   <body><h2>⬡ YoFiN – Analýza a riešenia</h2>
   <p style="color:#888;font-size:0.85rem;">${new Date().toLocaleDateString('sk-SK')}</p>
-  ${el.innerHTML}</body></html>`);
+  ${el.innerHTML}
+</body></html>`);
   win.document.close();
   win.print();
 }
@@ -4169,5 +4177,120 @@ function closeFeedbackPopup(permanent) {
   </div>
 </div>
 
+
+
+<!-- RECEIPT CHOICE OVERLAY -->
+<div id="receipt-choice" style="display:none;position:fixed;inset:0;z-index:610;background:rgba(0,0,0,0.7);align-items:flex-end;justify-content:center;">
+  <div style="background:var(--surface);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:480px;text-align:center;">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:var(--text);margin-bottom:6px;">Pridať bloček</div>
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:20px;">Vyber zdroj obrázka</div>
+    <div style="display:flex;gap:12px;margin-bottom:16px;">
+      <button onclick="pickReceiptSource('camera')" style="flex:1;padding:16px 8px;border-radius:14px;border:1.5px solid var(--accent3);background:rgba(240,80,96,0.08);color:var(--accent3);font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <span style="font-size:1.8rem;">📷</span>Odfotiť
+      </button>
+      <button onclick="pickReceiptSource('gallery')" style="flex:1;padding:16px 8px;border-radius:14px;border:1.5px solid var(--accent3);background:rgba(240,80,96,0.08);color:var(--accent3);font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <span style="font-size:1.8rem;">🖼️</span>Z galérie
+      </button>
+    </div>
+    <button onclick="document.getElementById('receipt-choice').style.display='none'" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:none;color:var(--muted);font-family:'Syne',sans-serif;font-size:0.82rem;cursor:pointer;">Zrušiť</button>
+  </div>
+</div>
+<!-- RECEIPT SCANNER OVERLAY -->
+<div id="receipt-overlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+  <div style="text-align:center;color:#fff;">
+    <div style="font-size:2.5rem;margin-bottom:12px;">🧾</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;margin-bottom:6px;">Skenujem bloček...</div>
+    <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);">Claude číta bloček, moment...</div>
+    <div style="margin-top:16px;display:flex;gap:6px;justify-content:center;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#f05060;animation:pulse 1s infinite;"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#f05060;animation:pulse 1s infinite 0.2s;"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#f05060;animation:pulse 1s infinite 0.4s;"></div>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes pulse { 0%,100%{opacity:0.3;transform:scale(0.8);} 50%{opacity:1;transform:scale(1.2);} }
+</style>
+
+<script>
+function openReceiptScanner() {
+  document.getElementById('receipt-choice').style.display = 'flex';
+}
+
+function pickReceiptSource(source) {
+  document.getElementById('receipt-choice').style.display = 'none';
+  var inputId = source === 'camera' ? 'receipt-input-camera' : 'receipt-input-gallery';
+  document.getElementById(inputId).value = '';
+  document.getElementById(inputId).click();
+}
+
+function handleReceiptFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var base64 = e.target.result.split(',')[1];
+    var mimeType = file.type || 'image/jpeg';
+    processReceipt(base64, mimeType);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function processReceipt(base64, mimeType) {
+  var overlay = document.getElementById('receipt-overlay');
+  overlay.style.display = 'flex';
+  try {
+    var prompt = 'Extrahuj z blocka: nazov obchodu max 40 znakov, celkovu sumu ako cislo, kategoriu z: byvanie,doprava,jedlo,zdravie,zabava,predplatne,oblecenie,ine. Odpoved VYHRADNE ako JSON objekt nazov suma kategoria';
+    var response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mimeType, data: base64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+    var data = await response.json();
+    var text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
+    var cleaned = text.replace(/```json|```/g, '').trim();
+    var parsed;
+    try { parsed = JSON.parse(cleaned); }
+    catch(e) {
+      var m = cleaned.match(/\{[\s\S]*\}/);
+      if (m) parsed = JSON.parse(m[0]);
+      else throw new Error('Nepodarilo sa prečítať bloček');
+    }
+    overlay.style.display = 'none';
+    prefillFromReceipt(parsed);
+  } catch(err) {
+    overlay.style.display = 'none';
+    alert('Nepodarilo sa naskenovať bloček. Skús znovu alebo zadaj ručne.');
+  }
+}
+
+function prefillFromReceipt(data) {
+  resetVydavokForm();
+  if (data.nazov) document.getElementById('vyd-name').value = data.nazov;
+  if (data.suma) {
+    var s = parseFloat(data.suma).toFixed(2);
+    document.getElementById('vyd-skutok-suma').value = s;
+    document.getElementById('vyd-plan-suma').value = s;
+  }
+  if (data.kategoria) {
+    var validKeys = ['byvanie','doprava','jedlo','zdravie','zabava','predplatne','oblecenie','ine'];
+    if (validKeys.indexOf(data.kategoria) > -1) document.getElementById('vyd-kat').value = data.kategoria;
+  }
+  document.getElementById('vyd-typ').value = 'variabilny';
+  document.getElementById('vydavok-form-title').textContent = 'Z blocka';
+  document.getElementById('vyd-cancel').style.display = 'block';
+  document.getElementById('vydavok-modal').classList.add('open');
+}
+</script>
+
 </body>
-</html>
