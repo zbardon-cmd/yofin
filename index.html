@@ -4237,20 +4237,13 @@ function handleReceiptFile(input) {
 }
 
 async function processReceipt(base64, mimeType) {
-  var apiKey = localStorage.getItem('yofin_claude_key') || '';
-  if (!apiKey) {
-    apiKey = prompt('Zadaj svoj Anthropic API kľúč (uloží sa len lokálne v prehliadači):');
-    if (!apiKey) return;
-    localStorage.setItem('yofin_claude_key', apiKey.trim());
-    apiKey = apiKey.trim();
-  }
   var overlay = document.getElementById('receipt-overlay');
   overlay.style.display = 'flex';
   try {
     var prompt = 'Extrahuj z blocka: nazov obchodu max 40 znakov, celkovu sumu ako cislo, kategoriu z: byvanie,doprava,jedlo,zdravie,zabava,predplatne,oblecenie,ine. Odpoved VYHRADNE ako JSON objekt nazov suma kategoria';
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
+    var response = await fetch('https://black-lab-f608.z-bardon.workers.dev', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 300,
