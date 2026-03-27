@@ -327,111 +327,106 @@
 <!-- DASHBOARD -->
 <div class="section active" id="tab-dashboard">
 
-  <!-- Prázdny stav keď nie sú žiadne dáta -->
+  <!-- Prázdny stav -->
   <div id="dash-empty" style="display:none;">
     <div style="text-align:center;padding:40px 16px;">
       <div style="font-size:3.5rem;margin-bottom:14px;">🚀</div>
       <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:8px;" data-i18n="welcome_title">Vitaj v YoFiN!</div>
-      <div style="font-size: 0.75rem;color:var(--muted);line-height:1.7;max-width:280px;margin:0 auto 20px;" data-i18n="welcome_sub">Začni pridaním prvého príjmu alebo aktíva. Dashboard sa automaticky naplní tvojimi číslami.</div>
+      <div style="font-size:0.75rem;color:var(--muted);line-height:1.7;max-width:280px;margin:0 auto 20px;" data-i18n="welcome_sub">Začni pridaním prvého príjmu alebo aktíva.</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:280px;margin:0 auto;">
-        <button onclick="switchTab('prijmy')" style="background:var(--accent2);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size: 0.78rem;padding:12px;border:none;border-radius:12px;cursor:pointer;" data-i18n="btn_income">💰 Príjem</button>
-        <button onclick="switchTab('assets')" style="background:var(--accent);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size: 0.78rem;padding:12px;border:none;border-radius:12px;cursor:pointer;" data-i18n="btn_asset">🏠 Aktívum</button>
-        <button onclick="switchTab('vydavky')" style="background:var(--accent3);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size: 0.78rem;padding:12px;border:none;border-radius:12px;cursor:pointer;" data-i18n="btn_expense">📋 Výdavok</button>
-        <button onclick="switchTab('pasiva')" style="background:#c070f0;color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size: 0.78rem;padding:12px;border:none;border-radius:12px;cursor:pointer;" data-i18n="btn_liability">🏦 Pasívum</button>
+        <button onclick="switchTab('prijmy')" style="background:var(--accent2);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:0.78rem;padding:12px;border:none;border-radius:12px;cursor:pointer;" data-i18n="btn_income">💰 Príjem</button>
+        <button onclick="switchTab('assets')" style="background:var(--accent);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:0.78rem;padding:12px;border:none;border-radius:12px;cursor:pointer;" data-i18n="btn_asset">🏠 Aktívum</button>
+        <button onclick="switchTab('vydavky')" style="background:var(--accent3);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:0.78rem;padding:12px;border:none;border-radius:12px;cursor:pointer;" data-i18n="btn_expense">📋 Výdavok</button>
+        <button onclick="switchTab('pasiva')" style="background:#c070f0;color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:0.78rem;padding:12px;border:none;border-radius:12px;cursor:pointer;" data-i18n="btn_liability">🏦 Pasívum</button>
       </div>
     </div>
   </div>
 
-  <!-- Hlavný obsah dashboardu -->
+  <!-- Hlavný obsah -->
   <div id="dash-content">
-    <!-- Cieľ finančnej slobody -->
-    <div class="form-card" style="margin-bottom:14px;cursor:pointer;transition:border-color 0.2s;" onclick="switchTab('goals')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor=''">
+
+    <!-- ═══ DONUT SEKCIA ═══ -->
+    <div class="form-card" style="margin-bottom:14px;padding:16px;position:relative;">
+
+      <!-- Tooltip (shared) -->
+      <div id="dash-donut-tip" style="display:none;position:absolute;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:0.75rem;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.3);min-width:120px;"></div>
+
+      <!-- Hlavičky mesiac -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:800;color:var(--accent2);letter-spacing:0.5px;">💸 TENTO MESIAC</div>
+        <div style="font-size:0.68rem;color:var(--muted);" id="dash-month-lbl"></div>
+      </div>
+
+      <!-- Hlavný donut (veľký) -->
+      <div style="display:flex;justify-content:center;margin-bottom:14px;">
+        <canvas id="dash-main-donut" width="220" height="220" style="width:220px;height:220px;cursor:pointer;"></canvas>
+      </div>
+
+      <!-- Malé donuts vedľa seba -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="text-align:center;">
+          <div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">💰 Sporenie/Invest</div>
+          <div style="display:flex;justify-content:center;">
+            <canvas id="dash-spo-donut" width="110" height="110" style="width:110px;height:110px;cursor:pointer;"></canvas>
+          </div>
+          <div style="font-size:0.68rem;color:var(--muted);margin-top:4px;" id="dash-spo-milestone"></div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">📈 Pasívny príjem</div>
+          <div style="display:flex;justify-content:center;">
+            <canvas id="dash-pas-donut" width="110" height="110" style="width:110px;height:110px;cursor:pointer;"></canvas>
+          </div>
+          <div style="font-size:0.68rem;color:var(--muted);margin-top:4px;" id="dash-pas-milestone"></div>
+        </div>
+      </div>
+
+    </div>
+    <!-- ═══ END DONUT ═══ -->
+
+    <!-- Cashflow riadky -->
+    <div class="form-card" style="margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <div style="font-family:var(--font-head);font-size: 0.8rem;font-weight:800;color:var(--accent);letter-spacing:0.5px;"><span data-i18n="fin_freedom">FINANČNÁ SLOBODA</span></div>
+        <div style="font-size:0.78rem;color:var(--muted);">📥 Celkové príjmy</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--accent2);" id="dash-total-income">0 €</div>
+      </div>
+      <div id="dash-income-breakdown" style="margin-left:12px;margin-bottom:8px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-size:0.78rem;color:var(--muted);">📤 Celkové výdavky</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--accent3);" id="dash-total-vydavky">0 €</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:0.78rem;color:var(--muted);">💳 Splátky dlhov</div>
+        <div style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;color:#c070f0;" id="dash-total-splatky">0 €</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:800;color:var(--muted);">= Zostatok</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;" id="dash-cashflow">0 €</div>
+      </div>
+    </div>
+
+    <!-- Cieľ finančnej slobody -->
+    <div class="form-card" style="margin-bottom:12px;cursor:pointer;transition:border-color 0.2s;" onclick="switchTab('goals')" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor=''">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-family:var(--font-head);font-size:0.8rem;font-weight:800;color:var(--accent);letter-spacing:0.5px;"><span data-i18n="fin_freedom">FINANČNÁ SLOBODA</span></div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <div style="font-size: 0.82rem;color:var(--accent2);font-weight:700;" id="dash-goal-pct">0 %</div>
-          <div style="font-size: 0.72rem;color:var(--muted);">→</div>
+          <div style="font-size:0.82rem;color:var(--accent2);font-weight:700;" id="dash-goal-pct">0 %</div>
+          <div style="font-size:0.72rem;color:var(--muted);">→</div>
         </div>
       </div>
       <div class="goal-progress-bg"><div class="goal-progress-fill" id="dash-goal-bar" style="width:0%"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size: 0.74rem;color:var(--muted);margin-top:5px;">
+      <div style="display:flex;justify-content:space-between;font-size:0.74rem;color:var(--muted);margin-top:5px;">
         <span><span data-i18n="passive_income">Môj pasívny príjem</span>: <span id="dash-goal-income" style="color:var(--text)">0 €</span><span data-i18n="per_mo">/mes</span></span>
         <span><span data-i18n="goal_lbl">Cieľ</span>: <span id="dash-goal-target" style="color:var(--text)">—</span><span data-i18n="per_mo">/mes</span></span>
       </div>
     </div>
 
-    <!-- Skupina 1: Majetok -->
-    <div style="font-size: 0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'Syne',sans-serif;"><span data-i18n="grp_wealth">🏦 Majetok</span></div>
-    <div class="summary-grid" style="margin-bottom:6px;">
-      <div class="summary-card yellow" onclick="switchTab('assets')" style="cursor:pointer;" title="Prejsť na Aktíva">
-        <div class="label"><span data-i18n="total_value">Celková hodnota</span>
-          <span class="dash-tip" data-tip="Súčet trhových hodnôt všetkých tvojich aktív – nehnuteľnosti, investície, hotovosť a iné.">ⓘ</span>
-        </div>
-        <div class="value" id="d-value">0 €</div>
-      </div>
-      <div class="summary-card green" style="cursor:default;">
-        <div class="label"><span data-i18n="net_worth">Čisté imanie</span>
-          <span class="dash-tip" data-tip="Celková hodnota aktív mínus všetky dlhy. Toto je tvoj skutočný majetok.">ⓘ</span>
-        </div>
-        <div class="value" id="d-networth">0 €</div>
-      </div>
+    <!-- Zdravie financií -->
+    <div class="form-card" style="margin-bottom:12px;">
+      <div style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:800;color:var(--muted);letter-spacing:0.5px;margin-bottom:8px;">🩺 ZDRAVIE FINANCIÍ</div>
+      <div id="dash-health-bars"></div>
     </div>
 
-    <!-- Skupina 2: Mesačný tok -->
-    <div style="font-size: 0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'Syne',sans-serif;"><span data-i18n="grp_flow">💸 Mesačný tok</span></div>
-    <div class="summary-grid" style="margin-bottom:6px;">
-      <div class="summary-card green" onclick="switchTab('assets')" style="cursor:pointer;">
-        <div class="label"><span data-i18n="yields_month">📥 Výnosy / mes</span>
-          <span class="dash-tip" data-tip="Celkové mesačné príjmy z aktív – nájom, dividendy, výnosy z investícií.">ⓘ</span>
-        </div>
-        <div class="value" id="d-inc-m">0 €</div>
-        <div class="sub"><span data-i18n="yearly">ročne</span>: <span id="d-inc-y">0 €</span></div>
-      </div>
-      <div class="summary-card red" onclick="switchTab('assets')" style="cursor:pointer;">
-        <div class="label"><span data-i18n="costs_month">📤 Náklady / mes</span>
-          <span class="dash-tip" data-tip="Celkové mesačné náklady na správu aktív – poplatky, opravy, poistenie.">ⓘ</span>
-        </div>
-        <div class="value" id="d-cos-m">0 €</div>
-        <div class="sub"><span data-i18n="yearly">ročne</span>: <span id="d-cos-y">0 €</span></div>
-      </div>
-    </div>
-
-    <!-- Skupina 3: Výsledok -->
-    <div style="font-size: 0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;font-family:'Syne',sans-serif;"><span data-i18n="grp_result">📊 Výsledok</span></div>
-    <div class="summary-grid" style="margin-bottom:6px;">
-      <div class="summary-card blue" style="cursor:default;">
-        <div class="label"><span data-i18n="net_profit">💹 Čistý zisk / mes</span>
-          <span class="dash-tip" data-tip="Výnosy mínus náklady z aktív. Toto je tvoj pasívny príjem každý mesiac.">ⓘ</span>
-        </div>
-        <div class="value" id="d-net-m">0 €</div>
-        <div class="sub"><span data-i18n="yearly">ročne</span>: <span id="d-net-y">0 €</span></div>
-      </div>
-      <div class="summary-card red" onclick="switchTab('pasiva')" style="cursor:pointer;">
-        <div class="label"><span data-i18n="total_debt">🏦 Celkový dlh</span>
-          <span class="dash-tip" data-tip="Suma všetkých zostávajúcich dlhov – hypotéka, leasing, úvery. Cieľ: znižovať.">ⓘ</span>
-        </div>
-        <div class="value" id="d-debt">0 €</div>
-      </div>
-    </div>
-
-    <!-- Splátky -->
-    <div class="summary-card" onclick="switchTab('pasiva')" style="margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;">
-      <div class="label"><span data-i18n="liab_payments">💳 Splátky pasív / mes</span>
-        <span class="dash-tip" data-tip="Celková suma mesačných splátok všetkých pasív – hypotéka, leasing, úvery.">ⓘ</span>
-      </div>
-      <div class="value" id="d-payments" style="color:#c070f0;">0 €</div>
-      <div class="sub"><span data-i18n="yearly">ročne</span>: <span id="d-payments-y">0 €</span></div>
-    </div>
-
-    <div class="section-title"><span data-i18n="value_distrib">Rozloženie hodnoty</span></div>
-    <div class="form-card" style="margin-bottom:16px;">
-      <div id="chart-container"></div>
-    </div>
-    <div class="section-title"><span data-i18n="income_vs_exp">Príjmy vs Výdavky</span></div>
-    <div class="form-card" style="margin-bottom:16px;">
-      <canvas id="bar-canvas" style="display:block;width:100%;"></canvas>
-      <div id="bar-legend" style="display:flex;justify-content:center;gap:10px;margin-top:10px;font-size: 0.72rem;flex-wrap:nowrap;"></div>
-    </div>
+    <!-- Pozornosť -->
     <div id="dash-assets-attention" style="display:none;">
       <div class="section-title"><span data-i18n="section_assets_attention">⚠️ Aktíva vyžadujúce pozornosť</span></div>
       <div class="asset-list" id="recent-list"></div>
@@ -440,112 +435,6 @@
       <div class="section-title" style="margin-top:16px;"><span data-i18n="section_liab_attention">⚠️ Pasíva vyžadujúce pozornosť</span></div>
       <div class="asset-list" id="recent-pasiva-list"></div>
     </div>
-  </div>
-</div>
-
-<!-- AI ADVISOR FLOATING BUTTON -->
-<div id="advisor-fab" style="position:fixed;bottom:24px;right:16px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-  <div id="advisor-tooltip" style="background:var(--surface);border:1px solid #c070f0;border-radius:20px;padding:5px 12px;font-size:0.72rem;color:#c070f0;font-family:'Syne',sans-serif;font-weight:700;white-space:nowrap;animation:fadeIn 0.3s ease;box-shadow:0 2px 10px rgba(192,112,240,0.3);">💡 AI Advisor</div>
-  <button id="advisor-btn" onclick="openAdvisor();hideAdvisorTooltip()" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#c070f0,#7030c0);color:#fff;border:none;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(192,112,240,0.5);display:flex;align-items:center;justify-content:center;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">💡</button>
-</div>
-
-<!-- SPEED DIAL FAB -->
-<div id="speed-dial" style="position:fixed;bottom:90px;right:16px;z-index:299;display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-  <!-- Options (hidden by default) -->
-  <div id="speed-dial-options" style="display:none;flex-direction:column;align-items:flex-end;gap:8px;margin-bottom:4px;">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span class="sd-lbl" data-i18n="btn_income" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:0.72rem;color:var(--muted);white-space:nowrap;">💰 Príjem</span>
-      <button onclick="switchTab('prijmy');openAddPrijem();toggleSpeedDial()" style="width:40px;height:40px;border-radius:50%;background:var(--accent2);color:#000;border:none;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 10px rgba(74,240,160,0.4);">💰</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span class="sd-lbl" data-i18n="btn_asset" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:0.72rem;color:var(--muted);white-space:nowrap;">🏠 Aktívum</span>
-      <button onclick="switchTab('assets');openAdd('asset');toggleSpeedDial()" style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:#000;border:none;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 10px rgba(240,192,64,0.4);">🏠</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span class="sd-lbl" data-i18n="btn_expense" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:0.72rem;color:var(--muted);white-space:nowrap;">📋 Výdavok</span>
-      <button onclick="switchTab('vydavky');openAddVydavok();toggleSpeedDial()" style="width:40px;height:40px;border-radius:50%;background:var(--accent3);color:#fff;border:none;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 10px rgba(240,80,96,0.4);">📋</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span class="sd-lbl" data-i18n="btn_liability" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:0.72rem;color:var(--muted);white-space:nowrap;">🏦 Pasívum</span>
-      <button onclick="switchTab('pasiva');openAdd('pasivum');toggleSpeedDial()" style="width:40px;height:40px;border-radius:50%;background:#c070f0;color:#000;border:none;font-size:1.1rem;cursor:pointer;box-shadow:0 2px 10px rgba(192,112,240,0.4);">🏦</button>
-    </div>
-  </div>
-  <!-- Main button -->
-  <button id="speed-dial-btn" onclick="toggleSpeedDial()" style="width:48px;height:48px;border-radius:50%;background:var(--surface);border:2px solid var(--border);color:var(--text);font-size:1.4rem;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.3);transition:transform 0.2s,background 0.2s;" title="Rýchle pridanie">+</button>
-</div>
-
-<!-- AI ADVISOR MODAL -->
-<div id="advisor-modal" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.8);align-items:flex-end;justify-content:center;">
-  <div style="background:var(--surface);border-top:2px solid #c070f0;border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column;">
-
-    <!-- Header -->
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:#c070f0;" data-i18n="advisor_title">🔍 Analýza a riešenia</div>
-        <div style="font-size: 0.74rem;color:var(--muted);margin-top:2px;" data-i18n="advisor_sub">AI analýza · odporúčania · riešenia</div>
-      </div>
-      <button onclick="closeAdvisor()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
-    </div>
-
-    <!-- Analýzy -->
-    <div style="padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;">
-      <div style="font-size: 0.77rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;" data-i18n="advisor_pick">Vyber analýzu:</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;">
-        <button class="adv-btn" onclick="runAdvisor('healthcheck')" data-i18n="adv_healthcheck">💊 Health check</button>
-        <button class="adv-btn" onclick="runAdvisor('waste')" data-i18n="adv_waste">🕳️ Kde plýtvam</button>
-        <button class="adv-btn" onclick="runAdvisor('debt')" data-i18n="adv_debt">🏦 Dlhy – poradie</button>
-        <button class="adv-btn" onclick="runAdvisor('freedom')" data-i18n="adv_freedom">🎯 Cesta k slobode</button>
-        <button class="adv-btn" onclick="runAdvisor('invest')" data-i18n="adv_invest">📈 Kde investovať</button>
-      </div>
-    </div>
-
-    <!-- Výsledok -->
-    <div id="advisor-result" style="flex:1;overflow-y:auto;padding:16px 20px;">
-      <div style="text-align:center;padding:32px 16px;color:var(--muted);">
-        <div style="font-size:2.5rem;margin-bottom:12px;">🤖</div>
-        <div style="font-size: 0.8rem;line-height:1.6;" data-i18n="advisor_empty">Vyber typ analýzy a AI preskúma<br>tvoj finančný profil.</div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- DELETE CONFIRM MODAL -->
-<div id="delete-confirm" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);border:1px solid var(--accent3);border-radius:14px;padding:24px;width:100%;max-width:320px;text-align:center;">
-    <div style="font-size:2rem;margin-bottom:10px;">🗑</div>
-    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;margin-bottom:4px;color:var(--text);" data-i18n="delete_title">Odstrániť položku?</div>
-    <div id="delete-item-name" style="font-size:0.85rem;color:var(--accent3);font-weight:700;margin-bottom:8px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;"></div>
-    <div style="font-size: 0.84rem;color:var(--muted);margin-bottom:20px;" data-i18n="cannot_undo">Táto akcia sa nedá vrátiť späť.</div>
-    <div style="display:flex;gap:10px;">
-      <button onclick="hideDeleteConfirm()" class="btn-primary" style="background:var(--border);color:var(--text);" data-i18n="cancel_btn">Zrušiť</button>
-      <button onclick="doDelete()" class="btn-primary" style="background:var(--accent3);" data-i18n="delete_confirm_btn">Odstrániť</button>
-    </div>
-  </div>
-</div>
-
-<!-- UPGRADE MODAL -->
-<div class="upgrade-modal" id="upgrade-modal">
-  <div class="upgrade-inner">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--accent);">⬡ YoFiN FULL</div>
-      <button onclick="closeUpgrade()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
-    </div>
-    <div style="text-align:center;margin-bottom:20px;">
-      <div style="font-size:2.5rem;margin-bottom:8px;">🚀</div>
-      <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text);margin-bottom:6px;" data-i18n="upg_title">Odomkni plný potenciál</div>
-      <div style="font-size: 0.75rem;color:var(--muted);" data-i18n="upg_sub">Jednorazová platba – žiadne predplatné</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-      <div style="display:flex;align-items:center;gap:10px;font-size: 0.78rem;"><span style="font-size:1.2rem;">♾️</span><span><strong style="color:var(--text)" data-i18n="upg_assets">Neobmedzené aktíva a pasíva</strong><br><span style="color:var(--muted);" data-i18n="upg_assets_free">Free: max 3 každého</span></span></div>
-      <div style="display:flex;align-items:center;gap:10px;font-size: 0.78rem;"><span style="font-size:1.2rem;">📊</span><span><strong style="color:var(--text)" data-i18n="upg_forecast">Prognóza 2/3/5/10 rokov</strong><br><span style="color:var(--muted);" data-i18n="upg_forecast_free">Free: len 1 rok</span></span></div>
-      <div style="display:flex;align-items:center;gap:10px;font-size: 0.78rem;"><span style="font-size:1.2rem;">☁️</span><span><strong style="color:var(--text)" data-i18n="upg_cloud">Cloud sync – dáta vždy v bezpečí</strong><br><span style="color:var(--muted);" data-i18n="upg_cloud_free">Free: len lokálne uloženie</span></span></div>
-      <div style="display:flex;align-items:center;gap:10px;font-size: 0.78rem;"><span style="font-size:1.2rem;">📄</span><span><strong style="color:var(--text)" data-i18n="upg_pdf">PDF/HTML export reportu</strong><br><span style="color:var(--muted);" data-i18n="upg_pdf_free">Free: len JSON záloha</span></span></div>
-      <div style="display:flex;align-items:center;gap:10px;font-size: 0.78rem;"><span style="font-size:1.2rem;">📈</span><span><strong style="color:var(--text)" data-i18n="upg_chart">Graf aktíva vs dlhy</strong><br><span style="color:var(--muted);" data-i18n="upg_chart_free">Free: nedostupné</span></span></div>
-      <div style="display:flex;align-items:center;gap:10px;font-size: 0.78rem;"><span style="font-size:1.2rem;">🔔</span><span><strong style="color:var(--text)" data-i18n="upg_reminders">Pripomienky splatnosti</strong><br><span style="color:var(--muted);" data-i18n="upg_reminders_free">Free: nedostupné</span></span></div>
-    </div>
-    <button class="btn-primary" onclick="activatePro()" style="margin-bottom:8px;" data-i18n="upg_btn">🔓 AKTIVOVAŤ PRO – 4,99 €</button>
-    <div style="text-align:center;font-size: 0.74rem;color:var(--muted);" data-i18n="upg_demo">Demo: klikni pre aktiváciu bez platby</div>
   </div>
 </div>
 
@@ -673,8 +562,50 @@
 </div>
 <div class="section" id="tab-assets">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <div style="font-family:'Syne',sans-serif;font-size: 0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;" data-i18n="assets_title">Prehľad aktív</div>
+    <div style="font-family:'Syne',sans-serif;font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;" data-i18n="assets_title">Prehľad aktív</div>
     <button onclick="openAdd('asset')" style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:#000;border:none;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(240,192,64,0.4);">+</button>
+  </div>
+
+  <!-- Investor súhrn (presunený z dashboardu) -->
+  <div id="assets-investor-summary">
+    <div class="summary-grid" style="margin-bottom:6px;">
+      <div class="summary-card yellow">
+        <div class="label"><span data-i18n="total_value">Celková hodnota</span></div>
+        <div class="value" id="d-value">0 €</div>
+      </div>
+      <div class="summary-card green">
+        <div class="label"><span data-i18n="net_worth">Čisté imanie</span></div>
+        <div class="value" id="d-networth">0 €</div>
+      </div>
+    </div>
+    <div class="summary-grid" style="margin-bottom:6px;">
+      <div class="summary-card green">
+        <div class="label"><span data-i18n="yields_month">📥 Výnosy / mes</span></div>
+        <div class="value" id="d-inc-m">0 €</div>
+        <div class="sub"><span data-i18n="yearly">ročne</span>: <span id="d-inc-y">0 €</span></div>
+      </div>
+      <div class="summary-card red">
+        <div class="label"><span data-i18n="costs_month">📤 Náklady / mes</span></div>
+        <div class="value" id="d-cos-m">0 €</div>
+        <div class="sub"><span data-i18n="yearly">ročne</span>: <span id="d-cos-y">0 €</span></div>
+      </div>
+    </div>
+    <div class="summary-grid" style="margin-bottom:14px;">
+      <div class="summary-card blue">
+        <div class="label"><span data-i18n="net_profit">💹 Čistý zisk / mes</span></div>
+        <div class="value" id="d-net-m">0 €</div>
+        <div class="sub"><span data-i18n="yearly">ročne</span>: <span id="d-net-y">0 €</span></div>
+      </div>
+      <div class="summary-card red" onclick="switchTab('pasiva')" style="cursor:pointer;">
+        <div class="label"><span data-i18n="total_debt">🏦 Celkový dlh</span></div>
+        <div class="value" id="d-debt">0 €</div>
+      </div>
+    </div>
+    <!-- Donut rozloženia -->
+    <div class="section-title"><span data-i18n="value_distrib">Rozloženie hodnoty</span></div>
+    <div class="form-card" style="margin-bottom:14px;">
+      <div id="chart-container"></div>
+    </div>
   </div>
   <div id="assets-tiles" style="margin-bottom:14px;"></div>
   <div id="assets-detail" style="display:none;">
@@ -1905,6 +1836,56 @@ function emptyState(icon, title, desc, btnLabel, btnAction, btnColor, quote) {
 }
 
 function renderAssets() {
+  // ── Investor súhrn (presunený z dashboardu)
+  const tv  = assets.reduce((s,a)=>s+(a.value||0),0);
+  const tim = assets.reduce((s,a)=>s+(a.income||0),0);
+  const tcm = assets.reduce((s,a)=>s+(a.costs||0),0);
+  const totalDebt  = pasiva.reduce((s,p)=>s+(p.balance||0),0);
+  const totalPayM  = pasiva.reduce((s,p)=>s+(p.payment||0),0);
+  const nm = tim - tcm - totalPayM;
+  const nw = tv - totalDebt;
+  const setV = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  setV('d-value', fmt(tv));
+  setV('d-inc-m', fmt(tim)); setV('d-inc-y', fmt(tim*12));
+  setV('d-cos-m', fmt(tcm+totalPayM)); setV('d-cos-y', fmt((tcm+totalPayM)*12));
+  setV('d-net-m', fmt(nm)); setV('d-net-y', fmt(nm*12));
+  setV('d-debt', fmt(totalDebt));
+  const nwEl=document.getElementById('d-networth');
+  if(nwEl){ nwEl.textContent=fmt(nw); nwEl.style.color=nw>=0?'var(--accent2)':'var(--accent3)'; }
+  // Donut
+  const cc=document.getElementById('chart-container');
+  if(cc) {
+    if(!tv){ cc.innerHTML=`<div style="color:var(--muted);font-size:0.75rem;text-align:center;padding:20px;">${t('no_data_chart')}</div>`; }
+    else {
+      const types=['nehnutelnost','investicia','hotovost','ine'];
+      const tlabels=['Nehnuteľnosti','Cenné papiere','Hotovosť','Iné'];
+      const tcolors=['#f0c040','#4af0a0','#f05060','#7a7e94'];
+      const segs=types.map((tp,i)=>({label:tlabels[i],color:tcolors[i],value:assets.filter(a=>a.type===tp).reduce((s,a)=>s+(a.value||0),0)})).filter(s=>s.value>0);
+      cc.innerHTML=`<canvas id="donut-canvas" style="display:block;width:100%;"></canvas><div id="donut-legend" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>${totalDebt>0?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:0.82rem;"><span style="color:var(--accent3)">Celkový dlh</span><span style="color:var(--accent3);font-weight:700">${fmt(totalDebt)}</span></div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-top:4px;"><span style="color:var(--muted)">Čisté imanie</span><span style="color:${nw>=0?'var(--accent2)':'var(--accent3)'};font-weight:700">${fmt(nw)}</span></div>`:''}`;
+      const canvas=document.getElementById('donut-canvas');
+      const dpr=window.devicePixelRatio||1;
+      const size=Math.min(cc.clientWidth,220);
+      canvas.width=size*dpr; canvas.height=size*dpr;
+      canvas.style.width=size+'px'; canvas.style.height=size+'px';
+      canvas.style.display='block'; canvas.style.margin='0 auto';
+      const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+      const cx=size/2,cy=size/2,outerR=size/2-10,innerR=outerR*0.58;
+      let sa=-Math.PI/2;
+      segs.forEach(seg=>{ const sl=(seg.value/tv)*Math.PI*2; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,outerR,sa,sa+sl); ctx.closePath(); ctx.fillStyle=seg.color; ctx.fill(); sa+=sl; });
+      ctx.beginPath(); ctx.arc(cx,cy,innerR,0,Math.PI*2);
+      const isDk=document.documentElement.getAttribute('data-theme')!=='light';
+      ctx.fillStyle=isDk?'#1e2029':'#ffffff'; ctx.fill();
+      ctx.textAlign='center'; ctx.fillStyle=isDk?'#e8eaf0':'#1a2a6c';
+      ctx.font=`bold ${Math.round(size*0.07)}px IBM Plex Mono,monospace`;
+      ctx.fillText(fmt(tv).replace(' €',''),cx,cy-size*0.04);
+      ctx.font=`${Math.round(size*0.055)}px IBM Plex Mono,monospace`;
+      ctx.fillStyle=isDk?'#7a7e94':'#4a6aa0';
+      ctx.fillText('celková hodnota',cx,cy+size*0.06);
+      const leg=document.getElementById('donut-legend');
+      if(leg) leg.innerHTML=segs.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;font-size:0.82rem;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:3px;background:${s.color};flex-shrink:0;"></div><span style="color:var(--muted)">${s.label}</span></div><div style="display:flex;gap:10px;"><span style="color:${s.color};font-weight:700">${Math.round(s.value/tv*100)}%</span><span style="color:var(--text);font-weight:700">${fmt(s.value)}</span></div></div>`).join('');
+    }
+  }
+
   const tilesEl = document.getElementById('assets-tiles');
   if (!tilesEl) return;
 
@@ -3119,241 +3100,340 @@ function renderCFBubble() {
 }
 
 function renderDashboard() {
-  const tv=assets.reduce((s,a)=>s+(a.value||0),0);
-  const tim=assets.reduce((s,a)=>s+(a.income||0),0);
-  const tcm=assets.reduce((s,a)=>s+(a.costs||0),0);
-  const totalDebt=pasiva.reduce((s,p)=>s+(p.balance||0),0);
-  const totalPayM=pasiva.reduce((s,p)=>s+(p.payment||0),0);
-  const nm=tim-tcm-totalPayM;
+  const cm   = currentMonth();
+  const now  = new Date();
+  const mNames = ['Január','Február','Marec','Apríl','Máj','Jún','Júl','August','September','Október','November','December'];
+  const setTxt = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  const setCol = (id,v,c) => { const e=document.getElementById(id); if(e){ e.textContent=v; if(c) e.style.color=c; }};
 
-  // Prázdny stav
-  const isEmpty = !assets.length && !pasiva.length && !prijmy.length && !vydavky.length;
-  const emptyEl = document.getElementById('dash-empty');
+  setTxt('dash-month-lbl', mNames[now.getMonth()]+' '+now.getFullYear());
+
+  // ── Data
+  const tv          = assets.reduce((s,a)=>s+(a.value||0),0);
+  const tim         = assets.reduce((s,a)=>s+(a.income||0),0);
+  const tcm         = assets.reduce((s,a)=>s+(a.costs||0),0);
+  const passiveNet  = tim - tcm;
+  const totalPayM   = pasiva.reduce((s,p)=>s+(p.payment||0),0);
+  const totalDebt   = pasiva.reduce((s,p)=>s+(p.balance||0),0);
+  const workIncome  = prijmy.reduce((s,p)=>s+getPrijemCurrentSuma(p),0);
+  const totalIncome = workIncome + passiveNet;
+  const vydCm       = vydavky.filter(v=>v.mesiac===cm);
+  const totalVyd    = vydCm.reduce((s,v)=>s+v.suma,0);
+  const fixSum      = vydCm.filter(v=>v.typ==='fix'&&!v.sporenie).reduce((s,v)=>s+v.suma,0);
+  const floatSum    = vydCm.filter(v=>v.typ==='float'&&!v.sporenie).reduce((s,v)=>s+v.suma,0);
+  const spoSum      = vydCm.filter(v=>v.kat==='sporenie'||v.kat==='invest').reduce((s,v)=>s+v.suma,0);
+  const cashflow    = totalIncome - totalVyd - totalPayM;
+  const spoPct      = totalIncome>0 ? Math.round(spoSum/totalIncome*100) : 0;
+
+  // ── Prázdny stav
+  const isEmpty = !assets.length&&!pasiva.length&&!prijmy.length&&!vydavky.length;
+  const emptyEl   = document.getElementById('dash-empty');
   const contentEl = document.getElementById('dash-content');
-  if (emptyEl) emptyEl.style.display = isEmpty ? 'block' : 'none';
-  if (contentEl) contentEl.style.display = isEmpty ? 'none' : 'block';
-  if (isEmpty) return;
-  const goalExp = parseFloat(localStorage.getItem('finfree_goal_exp') || '0');
-  const goalTgt = parseFloat(localStorage.getItem('finfree_goal_tgt') || '0');
-  const target = goalTgt || goalExp;
-  const pct = target > 0 ? Math.min(100, Math.round(nm / target * 100)) : 0;
+  if(emptyEl)   emptyEl.style.display   = isEmpty?'block':'none';
+  if(contentEl) contentEl.style.display = isEmpty?'none':'block';
+  if(isEmpty) return;
 
-  const dv=document.getElementById('d-value'); if(dv) dv.textContent=fmt(tv);
-  const dim=document.getElementById('d-inc-m'); if(dim) dim.textContent=fmt(tim);
-  const diy=document.getElementById('d-inc-y');
-  if(diy) { diy.textContent=fmt(tim*12); diy.closest('.sub')?.setAttribute('data-zero', tim===0?'1':'0'); }
-  const dcm=document.getElementById('d-cos-m'); if(dcm) dcm.textContent=fmt(tcm+totalPayM);
-  const dcy=document.getElementById('d-cos-y');
-  if(dcy) { dcy.textContent=fmt((tcm+totalPayM)*12); dcy.closest('.sub')?.setAttribute('data-zero', (tcm+totalPayM)===0?'1':'0'); }
-  const dnm=document.getElementById('d-net-m'); if(dnm) dnm.textContent=fmt(nm);
-  const dny=document.getElementById('d-net-y');
-  if(dny) { dny.textContent=fmt(nm*12); dny.closest('.sub')?.setAttribute('data-zero', nm===0?'1':'0'); }
-  const ddt=document.getElementById('d-debt'); if(ddt) ddt.textContent=fmt(totalDebt);
-  const dpm=document.getElementById('d-payments'); if(dpm) dpm.textContent=fmt(totalPayM);
-  const dpy=document.getElementById('d-payments-y');
-  if(dpy) { dpy.textContent=fmt(totalPayM*12); dpy.closest('.sub')?.setAttribute('data-zero', totalPayM===0?'1':'0'); }
-  const nw=tv-totalDebt;
-  const nwEl=document.getElementById('d-networth');
-  if(nwEl){ nwEl.textContent=fmt(nw); nwEl.style.color=nw>=0?'var(--accent2)':'var(--accent3)'; }
-  const dgp=document.getElementById('dash-goal-pct'); if(dgp) dgp.textContent = target > 0 ? pct + ' %' : 'Nastav cieľ';
-  if(dgp) dgp.style.color = pct >= 100 ? 'var(--accent2)' : 'var(--accent)';
-  const dgb=document.getElementById('dash-goal-bar'); if(dgb) dgb.style.width = pct + '%';
-  const dgi=document.getElementById('dash-goal-income'); if(dgi) dgi.textContent = fmt(nm);
-  const dgt=document.getElementById('dash-goal-target'); if(dgt) dgt.textContent = target > 0 ? fmt(target) : '—';
+  // ── Cieľ
+  const goalExp = parseFloat(localStorage.getItem('finfree_goal_exp')||'0');
+  const goalTgt = parseFloat(localStorage.getItem('finfree_goal_tgt')||'0');
+  const target  = goalTgt||goalExp;
+  const pct     = target>0 ? Math.min(100,Math.round(passiveNet/target*100)) : 0;
 
-  // Only render bubble chart when dashboard tab is visible
-  const isDashActive = document.getElementById('tab-dashboard')?.classList.contains('active');
-  if (isDashActive) { try { renderCFBubble(); } catch(e) {} }
+  // ── Textové hodnoty
+  setTxt('dash-total-income',  fmt(totalIncome));
+  setCol('dash-total-vydavky', fmt(totalVyd));
+  setTxt('dash-total-splatky', fmt(totalPayM));
+  setCol('dash-cashflow', fmt(cashflow), cashflow>=0?'var(--accent2)':'var(--accent3)');
 
-  const types=['nehnutelnost','investicia','hotovost','ine'];
-  const tlabels=['Nehnuteľnosti','Cenné papiere','Hotovosť/Účty','Iné'];
-  const tcolors=['#f0c040','#4af0a0','#f05060','#7a7e94'];
-  const cc=document.getElementById('chart-container');
+  const dgp=document.getElementById('dash-goal-pct');
+  if(dgp){ dgp.textContent=target>0?pct+' %':'Nastav cieľ'; dgp.style.color=pct>=100?'var(--accent2)':'var(--accent)'; }
+  const dgb=document.getElementById('dash-goal-bar'); if(dgb) dgb.style.width=pct+'%';
+  setTxt('dash-goal-income', fmt(passiveNet));
+  setTxt('dash-goal-target', target>0?fmt(target):'—');
 
-  if(!tv){
-    cc.innerHTML=`<div style="color:var(--muted);font-size: 0.75rem;text-align:center;padding:20px;">${t('no_data_chart')}</div>`;
-  } else {
-    // Build donut data
-    const segments = types.map((t,i) => ({
-      label: tlabels[i], color: tcolors[i],
-      value: assets.filter(a=>a.type===t).reduce((s,a)=>s+(a.value||0),0)
-    })).filter(s => s.value > 0);
-
-    cc.innerHTML = `<canvas id="donut-canvas" style="display:block;width:100%;"></canvas>
-      <div id="donut-legend" style="margin-top:12px;display:flex;flex-direction:column;gap:6px;"></div>
-      ${totalDebt>0?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size: 0.82rem;">
-        <span style="color:var(--accent3)">Celkový dlh</span><span style="color:var(--accent3);font-weight:700">${fmt(totalDebt)}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size: 0.82rem;margin-top:4px;">
-        <span style="color:var(--muted)">Čisté imanie</span><span style="color:${tv-totalDebt>=0?'var(--accent2)':'var(--accent3)'};font-weight:700">${fmt(tv-totalDebt)}</span>
-      </div>`:''}`;
-
-    // Draw donut
-    const canvas = document.getElementById('donut-canvas');
-    const dpr = window.devicePixelRatio || 1;
-    const size = Math.min(cc.clientWidth, 220);
-    canvas.width = size * dpr; canvas.height = size * dpr;
-    canvas.style.width = size + 'px'; canvas.style.height = size + 'px';
-    canvas.style.display = 'block'; canvas.style.margin = '0 auto';
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-
-    const cx = size/2, cy = size/2;
-    const outerR = size/2 - 10;
-    const innerR = outerR * 0.58;
-    let startAngle = -Math.PI/2;
-
-    segments.forEach(seg => {
-      const slice = (seg.value / tv) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, outerR, startAngle, startAngle + slice);
-      ctx.closePath();
-      ctx.fillStyle = seg.color;
-      ctx.fill();
-      startAngle += slice;
-    });
-
-    // Inner hole
-    ctx.beginPath();
-    ctx.arc(cx, cy, innerR, 0, Math.PI*2);
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-    ctx.fillStyle = isDark ? '#1e2029' : '#ffffff';
-    ctx.fill();
-
-    // Center text
-    ctx.textAlign = 'center';
-    ctx.fillStyle = isDark ? '#e8eaf0' : '#1a1c2a';
-    ctx.font = `bold ${Math.round(size*0.07)}px IBM Plex Mono,monospace`;
-    ctx.fillText(fmt(tv).replace(' €',''), cx, cy - size*0.04);
-    ctx.font = `${Math.round(size*0.055)}px IBM Plex Mono,monospace`;
-    ctx.fillStyle = isDark ? '#7a7e94' : '#8890aa';
-    ctx.fillText('celková hodnota', cx, cy + size*0.06);
-
-    // Legend
-    const legend = document.getElementById('donut-legend');
-    legend.innerHTML = segments.map(s => {
-      const pct = Math.round(s.value/tv*100);
-      return `<div style="display:flex;align-items:center;justify-content:space-between;font-size: 0.82rem;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div style="width:10px;height:10px;border-radius:3px;background:${s.color};flex-shrink:0;"></div>
-          <span style="color:var(--muted)">${s.label}</span>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <span style="color:${s.color};font-weight:700">${pct}%</span>
-          <span style="color:var(--text);font-weight:700">${fmt(s.value)}</span>
-        </div>
-      </div>`;
-    }).join('');
+  // ── Breakdown príjmov
+  const brkEl = document.getElementById('dash-income-breakdown');
+  if(brkEl){
+    const rows=[];
+    const kNames={Z:'Zamestnanie',S:'Sebazamestnanie',M:'Majetok',I:'Investície'};
+    const byK={};
+    prijmy.forEach(p=>{ const k=p.kvadrant||'Z'; byK[k]=(byK[k]||0)+getPrijemCurrentSuma(p); });
+    Object.entries(byK).forEach(([k,v])=>{ if(v>0) rows.push({l:kNames[k]||k,v,c:'var(--accent2)'}); });
+    if(passiveNet>0) rows.push({l:'Pasívny príjem',v:passiveNet,c:'var(--accent)'});
+    brkEl.innerHTML=rows.map(r=>`<div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-bottom:3px;"><span>${r.l}</span><span style="color:${r.c};font-weight:700;">${fmt(r.v)}</span></div>`).join('');
   }
-  // Aktíva vyžadujúce pozornosť – nízky výnos alebo záporný cashflow
-  const attentionAssets = assets.filter(a=>{
-    const net = (a.income||0)-(a.costs||0);
-    const yield_ = a.value>0 ? (net*12/a.value)*100 : 0;
-    return net<0 || yield_<2; // záporný cashflow alebo výnos pod 2%
-  }).slice(0,2);
-  const attentionAssetsFallback = attentionAssets.length ? attentionAssets : [...assets].slice(-2);
 
-  // Pasíva vyžadujúce pozornosť – vysoký úrok alebo blízka splatnosť
-  const now = new Date();
-  const attentionPasiva = pasiva.filter(p=>{
-    const dueDate = p.duedate ? new Date(p.duedate) : null;
-    const monthsLeft = dueDate ? Math.round((dueDate-now)/(1000*60*60*24*30.5)) : 999;
-    return (p.rate||0)>5 || monthsLeft<12; // úrok nad 5% alebo splatnosť do roka
-  }).slice(0,2);
-  const attentionPasivaFallback = attentionPasiva.length ? attentionPasiva : [...pasiva].slice(-2);
+  // ── Zdravie
+  const hEl=document.getElementById('dash-health-bars');
+  if(hEl){
+    const spendRate=totalIncome>0?Math.round((totalVyd+totalPayM)/totalIncome*100):0;
+    const metrics=[
+      {label:'Miera sporenia',val:spoPct,color:spoPct>=20?'var(--accent2)':spoPct>=10?'var(--accent)':'var(--accent3)',tip:'Cieľ ≥ 20%'},
+      {label:'Výdavky z príjmov',val:spendRate,color:spendRate<=80?'var(--accent2)':spendRate<=100?'var(--accent)':'var(--accent3)',tip:'Cieľ ≤ 80%'},
+    ];
+    if(target>0) metrics.push({label:'Pasívny príjem',val:pct,color:pct>=100?'var(--accent2)':'var(--accent)',tip:'Postup k slobode'});
+    hEl.innerHTML=metrics.map(m=>`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-bottom:3px;"><span>${m.label}</span><span style="color:${m.color};font-weight:700;">${m.val}% <span style="font-weight:400;font-size:0.65rem;">${m.tip}</span></span></div><div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="height:6px;border-radius:3px;background:${m.color};width:${Math.min(100,m.val)}%;transition:width 0.8s ease;"></div></div></div>`).join('');
+  }
 
-  const rl = document.getElementById('recent-list');
-  const rpl = document.getElementById('recent-pasiva-list');
-  const assetsSection = document.getElementById('dash-assets-attention');
-  const liabSection = document.getElementById('dash-liab-attention');
+  // ── Pozornosť aktíva/pasíva
+  const attAssets=assets.filter(a=>{ const n=(a.income||0)-(a.costs||0); return n<0||(a.value>0&&(n*12/a.value)*100<2); }).slice(0,2);
+  const fallA=attAssets.length?attAssets:[...assets].slice(-2);
+  const nowD=new Date();
+  const attPas=pasiva.filter(p=>{ const d=p.duedate?new Date(p.duedate):null; const ml=d?Math.round((d-nowD)/(30*24*3600*1000)):999; return (p.rate||0)>8||ml<12; }).slice(0,2);
+  const fallP=attPas.length?attPas:[...pasiva].slice(-2);
+  const ra=document.getElementById('dash-assets-attention'); if(ra) ra.style.display=assets.length?'block':'none';
+  const rl=document.getElementById('recent-list'); if(rl&&fallA.length) rl.innerHTML=fallA.map(assetCard).join('');
+  const rpa=document.getElementById('dash-liab-attention'); if(rpa) rpa.style.display=pasiva.length?'block':'none';
+  const rpl=document.getElementById('recent-pasiva-list'); if(rpl&&fallP.length) rpl.innerHTML=fallP.map(pasivumCard).join('');
 
-  // Show assets attention section only when assets exist
-  if (assetsSection) assetsSection.style.display = attentionAssetsFallback.length ? 'block' : 'none';
-  if (rl && attentionAssetsFallback.length) rl.innerHTML = attentionAssetsFallback.map(assetCard).join('');
+  // ── Donuts (after brief delay to ensure canvas is in DOM)
+  setTimeout(()=>{
+    const isDash=document.getElementById('tab-dashboard')?.classList.contains('active');
+    if(!isDash) return;
+    drawDashMainDonut({totalIncome,fixSum,floatSum,spoSum,totalPayM,cashflow});
+    drawDashMiniDonut('dash-spo-donut','dash-spo-milestone',spoSum,'#4af0a0','💰',spoPct+'% z príjmov');
+    drawDashMiniDonut('dash-pas-donut','dash-pas-milestone',passiveNet,'#f0c040','📈','z aktív/mes');
+    try{ renderCFBubble(); }catch(e){}
+  },60);
+}
 
-  // Show liabilities attention section only when liabilities exist
-  if (liabSection) liabSection.style.display = attentionPasivaFallback.length ? 'block' : 'none';
-  if (rpl && attentionPasivaFallback.length) rpl.innerHTML = attentionPasivaFallback.map(pasivumCard).join('');
+// ── Dynamický milestone limit
+function dashMilestone(val){
+  const steps=[100,200,500,1000,2000,5000,10000,20000,50000];
+  for(const s of steps){ if(val<s) return s; }
+  // nad 50k: zaokrúhli nahor na ďalší 10k
+  return Math.ceil((val+1)/10000)*10000;
+}
 
-  // BAR CHART – príjmy vs výdavky
-  const barCanvas = document.getElementById('bar-canvas');
-  if (!barCanvas) return;
-  const isDarkBar = document.documentElement.getAttribute('data-theme') !== 'light';
-  const totalIncome = tim;
-  const totalCosts = tcm + totalPayM;
-  const maxBar = Math.max(totalIncome, totalCosts, 1);
-  const barW = barCanvas.parentElement.clientWidth - 40;
-  const barH = 120;
-  const dprB = window.devicePixelRatio || 1;
-  barCanvas.width = barW * dprB; barCanvas.height = barH * dprB;
-  barCanvas.style.width = barW + 'px'; barCanvas.style.height = barH + 'px';
-  const bctx = barCanvas.getContext('2d');
-  bctx.scale(dprB, dprB);
+// ── Hlavný donut: Príjmy vs Výdavky vs Zostatok
+function drawDashMainDonut({totalIncome,fixSum,floatSum,spoSum,totalPayM,cashflow}){
+  const canvas=document.getElementById('dash-main-donut');
+  if(!canvas) return;
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  const dpr=window.devicePixelRatio||1;
+  const S=220;
+  canvas.width=S*dpr; canvas.height=S*dpr;
+  canvas.style.width=S+'px'; canvas.style.height=S+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const cx=S/2, cy=S/2, r=90, lw=26;
 
-  const barData = [
-    { label: '📥 Príjmy', value: totalIncome, color: '#4af0a0' },
-    { label: '📤 Výdavky', value: totalCosts, color: '#f05060' },
-    { label: '💹 Zisk', value: Math.max(0, totalIncome - totalCosts), color: '#f0c040' }
+  // ── Colour stops matching the clock: deep blue → blue → cyan → green → yellow-green
+  // HSL hue: 250 → 200 → 160 → 120 → 88
+  const clockStops=[
+    [0.00, [48,  32, 220]],   // deep blue/indigo
+    [0.20, [32, 100, 255]],   // bright blue
+    [0.42, [ 0, 210, 255]],   // cyan
+    [0.65, [ 0, 230, 160]],   // cyan-green
+    [0.82, [60, 240,  80]],   // bright green
+    [1.00, [170,240,  20]],   // yellow-green
   ];
 
-  const padL = 10, padR = 10, padT = 10, padB = 28;
-  const chartW = barW - padL - padR;
-  const chartH = barH - padT - padB;
-  const barWidth = Math.floor(chartW / barData.length * 0.5);
-  const gap = (chartW - barWidth * barData.length) / (barData.length + 1);
-
-  // grid
-  bctx.strokeStyle = isDarkBar ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-  bctx.lineWidth = 1;
-  for (let g = 0; g <= 3; g++) {
-    const y = padT + (g/3) * chartH;
-    bctx.beginPath(); bctx.moveTo(padL, y); bctx.lineTo(padL + chartW, y); bctx.stroke();
+  function lerpStops(stops, t){
+    for(let i=0;i<stops.length-1;i++){
+      const [t0,c0]=stops[i], [t1,c1]=stops[i+1];
+      if(t>=t0&&t<=t1){
+        const f=(t-t0)/(t1-t0);
+        return c0.map((v,j)=>Math.round(v+(c1[j]-v)*f));
+      }
+    }
+    return stops[stops.length-1][1];
   }
 
-  barData.forEach((d, i) => {
-    const x = padL + gap + i * (barWidth + gap);
-    const h = (d.value / maxBar) * chartH;
-    const y = padT + chartH - h;
+  const total=Math.max(fixSum+floatSum+spoSum+totalPayM+Math.max(cashflow,0),1);
+  const segs=[
+    {key:'fix',   label:'🔒 Fix výdavky',    val:fixSum},
+    {key:'float', label:'🌊 Float výdavky',   val:floatSum},
+    {key:'spo',   label:'💰 Sporenie/Invest', val:spoSum},
+    {key:'spl',   label:'💳 Splátky',         val:totalPayM},
+    {key:'free',  label:'✅ Voľné zdroje',    val:Math.max(cashflow,0)},
+  ].filter(s=>s.val>0);
 
-    // rounded top bar
-    bctx.beginPath();
-    const r = 5;
-    bctx.moveTo(x + r, y);
-    bctx.lineTo(x + barWidth - r, y);
-    bctx.quadraticCurveTo(x + barWidth, y, x + barWidth, y + r);
-    bctx.lineTo(x + barWidth, y + h);
-    bctx.lineTo(x, y + h);
-    bctx.lineTo(x, y + r);
-    bctx.quadraticCurveTo(x, y, x + r, y);
-    bctx.closePath();
-    bctx.fillStyle = d.color;
-    bctx.fill();
+  const GAP=0.06;
+  const totalSweep=Math.PI*1.72;
+  const startAngle=-Math.PI/2-totalSweep/2;
 
-    // value label on top
-    bctx.textAlign = 'center';
-    bctx.fillStyle = d.color;
-    bctx.font = `bold ${9}px IBM Plex Mono,monospace`;
-    const shortVal = d.value >= 1000 ? Math.round(d.value/100)/10 + 'k' : Math.round(d.value) + '';
-    bctx.fillText(shortVal + ' €', x + barWidth/2, y - 4);
-
-    // x label
-    bctx.fillStyle = isDarkBar ? 'rgba(122,126,148,0.9)' : 'rgba(136,144,170,0.9)';
-    bctx.font = `${8}px IBM Plex Mono,monospace`;
-    bctx.fillText(d.label, x + barWidth/2, barH - 6);
+  // Build segInfo for tooltip hit-testing
+  let segInfo=[], used=0;
+  segs.forEach((s,i)=>{
+    const sw=s.val/total*(totalSweep-GAP*segs.length);
+    segInfo.push({...s, sw, startA:startAngle+used+i*GAP, fracStart:used/totalSweep, fracEnd:(used+sw)/totalSweep});
+    used+=sw;
   });
 
-  // legend
-  const barLegend = document.getElementById('bar-legend');
-  if (barLegend) {
-    barLegend.innerHTML = barData.map(d =>
-      `<div style="display:flex;align-items:center;gap:5px;">
-        <div style="width:10px;height:10px;border-radius:3px;background:${d.color}"></div>
-        <span style="color:var(--muted)">${d.label.split(' ')[1]}: </span>
-        <span style="color:${d.color};font-weight:700">${fmt(d.value)}</span>
-      </div>`
-    ).join('');
+  // ── BG track
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,r,startAngle,startAngle+totalSweep);
+  ctx.strokeStyle=isDark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.08)';
+  ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke();
+  ctx.restore();
+
+  // ── Rainbow arc: draw STEPS micro-steps across totalSweep
+  const STEPS=200;
+  for(let k=0;k<STEPS;k++){
+    const t=k/STEPS;
+    const tNext=(k+1)/STEPS;
+    const a=startAngle+t*totalSweep;
+    const aNext=startAngle+tNext*totalSweep;
+    const [ri,gi,bi]=lerpStops(clockStops,t);
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,a,aNext+0.003);
+    ctx.strokeStyle=`rgb(${ri},${gi},${bi})`;
+    ctx.lineWidth=lw;
+    ctx.lineCap= k===0?'round': k===STEPS-1?'round':'butt';
+    ctx.stroke();
   }
+
+  // ── Outer glow: subtle shadow ring
+  const glow=ctx.createRadialGradient(cx,cy,r-lw+2,cx,cy,r+10);
+  glow.addColorStop(0,'rgba(0,180,255,0.0)');
+  glow.addColorStop(0.5,'rgba(0,180,255,0.08)');
+  glow.addColorStop(1,'rgba(0,0,0,0.0)');
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle=glow; ctx.lineWidth=lw+12; ctx.stroke();
+
+  // ── Punch transparent hole in center only (inside the ring)
+  ctx.save();
+  ctx.globalCompositeOperation='destination-out';
+  ctx.beginPath(); ctx.arc(cx,cy,r-lw/2-1,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,1)';
+  ctx.fill();
+  ctx.restore();
+
+  // ── Center text
+  ctx.textAlign='center';
+  const cfPos=cashflow>=0;
+  const cfColor=cfPos?(isDark?'#4af0a0':'#0a7a40'):(isDark?'#f05060':'#b02030');
+  const cfAbs=Math.abs(cashflow);
+  const cfStr=cfAbs>=1000?(Math.round(cfAbs/100)/10).toFixed(1)+'k':Math.round(cfAbs)+'';
+  // Small label top
+  ctx.font=`10px 'IBM Plex Mono',monospace`;
+  ctx.fillStyle=isDark?'rgba(122,126,148,0.7)':'rgba(74,106,160,0.7)';
+  const mN=['Jan','Feb','Mar','Apr','Máj','Jún','Júl','Aug','Sep','Okt','Nov','Dec'];
+  ctx.fillText(mN[new Date().getMonth()]+' '+new Date().getFullYear(),cx,cy-18);
+  // Main number
+  ctx.font=`800 26px 'Syne',sans-serif`;
+  ctx.fillStyle=cfColor;
+  ctx.fillText((cashflow<0?'−':'')+cfStr+' €',cx,cy+8);
+  // Sub label
+  ctx.font=`10px 'IBM Plex Mono',monospace`;
+  ctx.fillStyle=isDark?'rgba(122,126,148,0.8)':'rgba(74,106,160,0.8)';
+  ctx.fillText('zostatok',cx,cy+24);
+
+  // ── Tooltip on click
+  canvas._segInfo=segInfo;
+  canvas._total=total;
+  canvas._startAngle=startAngle;
+  canvas._totalSweep=totalSweep;
+  canvas.onclick=function(e){
+    const rect=canvas.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(S/rect.width)-cx;
+    const my=(e.clientY-rect.top)*(S/rect.height)-cy;
+    const dist=Math.sqrt(mx*mx+my*my);
+    const tip=document.getElementById('dash-donut-tip');
+    if(!tip) return;
+    if(dist<r-lw-4||dist>r+8){tip.style.display='none';return;}
+    // Map click angle to fraction along arc
+    let clickA=Math.atan2(my,mx);
+    // Normalize to arc fraction
+    let normA=clickA-canvas._startAngle;
+    while(normA<0) normA+=Math.PI*2;
+    while(normA>Math.PI*2) normA-=Math.PI*2;
+    const frac=normA/canvas._totalSweep;
+    const hit=canvas._segInfo.find(s=>frac>=s.fracStart&&frac<=(s.fracStart+s.sw/canvas._totalSweep));
+    const [rc,gc,bc]=hit?lerpStops(clockStops,hit.fracStart+0.5*(s=>s.sw/canvas._totalSweep)(hit)):[100,200,255];
+    if(hit){
+      const globalFrac=hit.fracStart+(hit.sw/2)/canvas._totalSweep;
+      const [r2,g2,b2]=lerpStops(clockStops,globalFrac);
+      const pct=Math.round(hit.val/canvas._total*100);
+      tip.style.display='block';
+      tip.style.left=Math.min(e.offsetX+12,S-145)+'px';
+      tip.style.top=Math.max(e.offsetY-56,4)+'px';
+      tip.innerHTML=`<div style="color:rgb(${r2},${g2},${b2});font-weight:800;margin-bottom:2px;">${hit.label}</div><div style="font-size:0.9rem;color:var(--text);font-weight:800;">${fmt(hit.val)}</div><div style="color:var(--muted);font-size:0.72rem;">${pct}% z toku</div>`;
+    } else { tip.style.display='none'; }
+  };
+  document.addEventListener('click',ev=>{if(!canvas.contains(ev.target)){const t=document.getElementById('dash-donut-tip');if(t)t.style.display='none';}});
+}
+
+function drawDashMiniDonut(canvasId,milestoneId,val,colorHex,icon,sub){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas) return;
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  const dpr=window.devicePixelRatio||1;
+  const S=110;
+  canvas.width=S*dpr; canvas.height=S*dpr;
+  canvas.style.width=S+'px'; canvas.style.height=S+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const cx=S/2, cy=S/2, r=44, lw=14;
+  const limit=dashMilestone(val);
+  const pct=Math.min(val/limit,1);
+  const totalSweep=Math.PI*1.7;
+  const startA=-Math.PI/2-totalSweep/2;
+
+  // Parse hex color to RGB
+  const hx=colorHex.replace('#','');
+  const cr=parseInt(hx.slice(0,2),16),cg=parseInt(hx.slice(2,4),16),cb=parseInt(hx.slice(4,6),16);
+  // Darker start color
+  const c1=[Math.round(cr*0.4),Math.round(cg*0.4),Math.round(cb*0.4)];
+  const c2=[cr,cg,cb];
+
+  // BG track
+  ctx.beginPath(); ctx.arc(cx,cy,r,startA,startA+totalSweep);
+  ctx.strokeStyle=isDark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)';
+  ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke(); ctx.lineCap='butt';
+
+  // Gradient fill arc
+  if(pct>0.01){
+    const fillSweep=pct*totalSweep;
+    const STEPS=80;
+    for(let k=0;k<STEPS;k++){
+      const t=k/STEPS;
+      const a=startA+t*fillSweep;
+      const ri=Math.round(c1[0]+(c2[0]-c1[0])*t);
+      const gi=Math.round(c1[1]+(c2[1]-c1[1])*t);
+      const bi=Math.round(c1[2]+(c2[2]-c1[2])*t);
+      ctx.beginPath(); ctx.arc(cx,cy,r,a,a+fillSweep/STEPS+0.01);
+      ctx.strokeStyle=`rgb(${ri},${gi},${bi})`;
+      ctx.lineWidth=lw; ctx.lineCap='butt'; ctx.stroke();
+    }
+    // End cap
+    const ea=startA+fillSweep;
+    ctx.beginPath(); ctx.arc(cx,cy,r,ea-0.01,ea);
+    ctx.strokeStyle=`rgb(${c2[0]},${c2[1]},${c2[2]})`;
+    ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke(); ctx.lineCap='butt';
+    // Start cap
+    ctx.beginPath(); ctx.arc(cx,cy,r,startA,startA+0.01);
+    ctx.strokeStyle=`rgb(${c1[0]},${c1[1]},${c1[2]})`;
+    ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke(); ctx.lineCap='butt';
+  }
+
+  // Center text
+  ctx.textAlign='center';
+  ctx.fillStyle=isDark?'#e8eaf0':'#1a2a6c';
+  const vs=val>=1000?(Math.round(val/100)/10).toFixed(1)+'k':Math.round(val)+'';
+  ctx.font=`800 13px 'Syne',sans-serif`;
+  ctx.fillText(vs+'€',cx,cy+5);
+
+  // Milestone
+  const mEl=document.getElementById(milestoneId);
+  if(mEl){
+    const ls=limit>=1000?(limit/1000)+'k':limit+'';
+    mEl.innerHTML=`<span style="color:${colorHex};font-weight:700;">${Math.round(pct*100)}%</span> <span style="color:var(--muted);">/ ${ls}€</span>`;
+  }
+
+  // Tooltip
+  canvas.onclick=function(e){
+    const tip=document.getElementById('dash-donut-tip');
+    if(!tip) return;
+    const card=canvas.closest('.form-card');
+    const cr2=card?card.getBoundingClientRect():canvas.getBoundingClientRect();
+    const cr3=canvas.getBoundingClientRect();
+    tip.style.display='block';
+    tip.style.left=(cr3.left-cr2.left+60)+'px';
+    tip.style.top='8px';
+    tip.innerHTML=`<div style="color:${colorHex};font-weight:800;margin-bottom:2px;">${icon} ${sub}</div><div style="font-size:0.9rem;color:var(--text);font-weight:800;">${fmt(val)} €</div><div style="color:var(--muted);font-size:0.72rem;">Míľnik: ${limit>=1000?(limit/1000)+'k':limit} € (${Math.round(pct*100)}%)</div>`;
+  };
 }
 
 function setFY(years,btn){
