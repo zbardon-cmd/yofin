@@ -824,9 +824,9 @@
 <!-- VYDAVKY -->
 <div class="section" id="tab-vydavky">
 
-  <!-- Header s + tlačidlom navrchu -->
+  <!-- Header -->
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <div style="font-family:'Syne',sans-serif;font-size: 0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;"><span data-i18n="expenses_overview"><span data-i18n="expenses_overview" data-i18n="expenses_overview">Prehľad výdavkov</span></span></div>
+    <div style="font-family:'Syne',sans-serif;font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Prehľad výdavkov</div>
     <div style="display:flex;gap:8px;align-items:center;">
       <button onclick="openReceiptScanner()" title="Naskenovať bloček" style="width:40px;height:40px;border-radius:50%;background:var(--card);color:var(--accent3);border:1.5px solid var(--accent3);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(240,80,96,0.2);">📷</button>
       <button onclick="openAddVydavok()" style="width:40px;height:40px;border-radius:50%;background:var(--accent3);color:#fff;border:none;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(240,80,96,0.4);">+</button>
@@ -835,71 +835,68 @@
   <input type="file" id="receipt-input-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleReceiptFile(this)">
   <input type="file" id="receipt-input-gallery" accept="image/*" style="display:none;" onchange="handleReceiptFile(this)">
 
-  <!-- Súhrn karty s novými farbami -->
-  <div class="summary-grid" style="margin-bottom:10px;">
-    <div class="summary-card" style="border:1px solid rgba(64,160,255,0.3);">
-      <div class="label" style="color:#40a0ff;"><span data-i18n="planned" data-i18n="planned">📋 Plán výdavkov / mes</span></div>
-      <div class="value" id="vyd-plan" style="color:#40a0ff;">0 €</div>
+  <!-- Ročná krivka spotreby -->
+  <div class="form-card" style="margin-bottom:10px;padding:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">📈 Spotreba v roku <span id="vyd-year-lbl"></span></div>
+      <div style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:800;color:var(--accent3);" id="vyd-cur-total"></div>
     </div>
-    <div class="summary-card" style="border:1px solid rgba(255,100,0,0.3);">
-      <div class="label" style="color:#ff6400;"><span data-i18n="actual" data-i18n="actual">🔥 Skutočne minuté / mes</span></div>
-      <div class="value" id="vyd-skutok" style="color:#ff6400;">0 €</div>
-    </div>
-  </div>
-  <div class="summary-grid" style="margin-bottom:14px;">
-    <div class="summary-card green">
-      <div class="label"><span data-i18n="savings" data-i18n="savings">✅ Úspora</span></div>
-      <div class="value" id="vyd-rozdiel">0 €</div>
-    </div>
-    <div class="summary-card yellow">
-      <div class="label"><span data-i18n="balance" data-i18n="balance">💰 Zostatok peňazí</span></div>
-      <div class="value" id="vyd-volny">0 €</div>
-    </div>
+    <canvas id="vyd-line" style="display:block;width:100%;height:110px;"></canvas>
+    <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:0.62rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;" id="vyd-month-labels"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;" id="vyd-line-legend"></div>
   </div>
 
-  <!-- Donut + Bar graf -->
-  <div class="form-card" style="margin-bottom:14px;">
-    <!-- Donut s číslami -->
-    <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:14px;">
-      <canvas id="vyd-donut" width="140" height="140" style="width:140px;height:140px;flex-shrink:0;"></canvas>
-      <div>
-        <div style="margin-bottom:8px;">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-            <div style="width:10px;height:10px;border-radius:50%;background:#f05060;flex-shrink:0;"></div>
-            <div style="font-size: 0.74rem;color:var(--muted);" data-i18n="actual_spent">Skutočne minuté</div>
-          </div>
-          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#f05060;" id="vyd-donut-skutok">0 €</div>
+  <!-- Donut: Fix vs Float vs Sporenie -->
+  <div class="form-card" style="margin-bottom:14px;padding:14px;">
+    <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">🍩 Štruktúra výdavkov – aktuálny mesiac</div>
+    <div style="display:flex;align-items:center;gap:20px;">
+      <canvas id="vyd-donut2" width="110" height="110" style="width:110px;height:110px;flex-shrink:0;"></canvas>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#f05060;flex-shrink:0;"></div>
+          <div style="font-size:0.74rem;color:var(--muted);">🔒 Fix</div>
+          <div style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:800;color:#f05060;margin-left:auto;" id="vyd-fix-val">0 €</div>
+          <div style="font-size:0.7rem;color:var(--muted);" id="vyd-fix-pct">0%</div>
         </div>
-        <div>
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-            <div style="width:10px;height:10px;border-radius:50%;background:#4af0a0;flex-shrink:0;"></div>
-            <div style="font-size: 0.74rem;color:var(--muted);" data-i18n="donut_balance">Zostatok peňazí</div>
-          </div>
-          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:#4af0a0;" id="vyd-donut-zostatok">0 €</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#60b0f0;flex-shrink:0;"></div>
+          <div style="font-size:0.74rem;color:var(--muted);">🌊 Float</div>
+          <div style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:800;color:#60b0f0;margin-left:auto;" id="vyd-float-val">0 €</div>
+          <div style="font-size:0.7rem;color:var(--muted);" id="vyd-float-pct">0%</div>
         </div>
-      </div>
-    </div>
-    <!-- Stĺpcový graf pod -->
-    <div style="border-top:1px solid var(--border);padding-top:12px;">
-      <div style="font-size: 0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;"><span data-i18n="plan_vs_actual">Plán vs Skutočnosť po kategóriách</span></div>
-      <canvas id="vyd-bar" style="display:block;width:100%;height:90px;"></canvas>
-      <div style="display:flex;gap:12px;margin-top:6px;">
-        <div style="display:flex;align-items:center;gap:5px;font-size: 0.72rem;color:var(--muted);">
-          <div style="width:10px;height:10px;border-radius:2px;background:#40a0ff;"></div><span data-i18n="plan_lbl">Plán</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:5px;font-size: 0.72rem;color:var(--muted);">
-          <div style="width:10px;height:10px;border-radius:2px;background:#ff6400;"></div><span data-i18n="actual_lbl">Skutočnosť</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#4af0a0;flex-shrink:0;"></div>
+          <div style="font-size:0.74rem;color:var(--muted);">💰 Sporenie/Invest</div>
+          <div style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:800;color:#4af0a0;margin-left:auto;" id="vyd-spo-val">0 €</div>
+          <div style="font-size:0.7rem;color:var(--muted);" id="vyd-spo-pct">0%</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Kategórie -->
-  <div id="vydavky-tiles" style="margin-bottom:14px;"></div>
+  <!-- Posledné 3 Float -->
+  <div style="margin-bottom:14px;">
+    <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🌊 Posledné Float výdavky</div>
+    <div id="vyd-last-float"></div>
+  </div>
+
+  <!-- Fix | Float vedľa seba -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:800;color:#f05060;margin-bottom:8px;display:flex;align-items:center;gap:5px;">🔒 Fix <span style="font-size:0.65rem;color:var(--muted);font-weight:400;" id="vyd-fix-total-lbl"></span></div>
+      <div id="vyd-fix-col"></div>
+    </div>
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:800;color:#60b0f0;margin-bottom:8px;display:flex;align-items:center;gap:5px;">🌊 Float <span style="font-size:0.65rem;color:var(--muted);font-weight:400;" id="vyd-float-total-lbl"></span></div>
+      <div id="vyd-float-col"></div>
+    </div>
+  </div>
+
+  <!-- Detail výdavkov kategórie -->
   <div id="vydavky-detail" style="display:none;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button onclick="closeVydavkyDetail()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);font-family:'IBM Plex Mono',ui-monospace,'Roboto Mono','Droid Sans Mono',monospace;font-size: 0.82rem;cursor:pointer;" data-i18n-back="back_btn">← Späť</button>
-      <div id="vydavky-detail-title" style="font-family:'Syne',sans-serif;font-weight:800;font-size: 0.95rem;color:var(--accent3);"></div>
+      <button onclick="closeVydavkyDetail()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:0.82rem;cursor:pointer;">← Späť</button>
+      <div id="vydavky-detail-title" style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.95rem;color:var(--accent3);"></div>
     </div>
     <div id="vydavky-detail-list"></div>
   </div>
@@ -909,51 +906,72 @@
 <div class="upgrade-modal" id="vydavok-modal">
   <div class="upgrade-inner">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div class="form-title" id="vydavok-form-title" style="margin-bottom:0;color:var(--accent3);" data-i18n="new_expense">Nový výdavok</div>
+      <div class="form-title" id="vydavok-form-title" style="margin-bottom:0;color:var(--accent3);">Nový výdavok</div>
       <button onclick="closeVydavokModal()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
     </div>
     <input type="hidden" id="vyd-edit-id" value="">
+
+    <!-- Typ toggle: FIX | FLOAT -->
     <div class="form-group">
-      <label data-i18n-first="expense_name">Názov výdavku <span class="tip-wrap"><span class="tip-icon" tabindex="0">?</span><span class="tip-box">Pomenuj výdavok konkrétne. Napr. "Tesco – potraviny" alebo "Netflix + Spotify".</span></span></label>
-      <input type="text" id="vyd-name" placeholder="napr. Nájom, Potraviny..." oninput="clearFieldError('vyd-name')">
-      <div class="field-error-msg" id="vyd-name-err">⚠ Zadaj názov</div>
+      <label>Typ výdavku</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button id="vyd-btn-fix" onclick="setVydTyp('fix')" style="padding:10px;border-radius:10px;border:2px solid #f05060;background:#f05060;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:0.82rem;cursor:pointer;">🔒 Fix</button>
+        <button id="vyd-btn-float" onclick="setVydTyp('float')" style="padding:10px;border-radius:10px;border:2px solid var(--border);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:0.82rem;cursor:pointer;">🌊 Float</button>
+      </div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-top:5px;" id="vyd-typ-hint">Fix = rovnaká suma každý mesiac (nájom, poistenie)</div>
     </div>
+
+    <!-- Mesiac -->
     <div class="form-group">
-      <label data-i18n-first="expense_cat">Kategória <span class="tip-wrap"><span class="tip-icon" tabindex="0">?</span><span class="tip-box">Zaradí výdavok do skupiny. Každá kategória má vlastnú dlaždicu v prehľade kde vidíš celkové čerpanie.</span></span></label>
+      <label>Mesiac</label>
+      <input type="month" id="vyd-mesiac" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:0.85rem;">
+    </div>
+
+    <!-- Kategória -->
+    <div class="form-group">
+      <label>Kategória</label>
       <select id="vyd-kat">
-        <option value="byvanie" data-i18n="kat_byvanie_opt">🏠 Bývanie (nájom, energie, internet)</option>
-        <option value="doprava" data-i18n="kat_doprava_opt">🚗 Doprava (palivo, MHD)</option>
-        <option value="jedlo" data-i18n="kat_jedlo_opt">🛒 Jedlo a nákupy</option>
-        <option value="zdravie" data-i18n="kat_zdravie_opt">💊 Zdravie a poisťovanie</option>
-        <option value="zabava" data-i18n="kat_zabava_opt">🎮 Zábava a voľnočasové aktivity</option>
-        <option value="predplatne" data-i18n="kat_predplatne_opt">📱 Predplatné a služby</option>
-        <option value="oblecenie" data-i18n="kat_oblecenie_opt">👕 Oblečenie</option>
-        <option value="ine" data-i18n="kat_ine_opt">📦 Iné</option>
+        <option value="sporenie">🏦 Sporenie</option>
+        <option value="invest">📈 Investovanie</option>
+        <option value="poistenie">🛡️ Poistenie</option>
+        <option value="byvanie">🏠 Bývanie</option>
+        <option value="doprava">🚗 Doprava</option>
+        <option value="jedlo">🛒 Jedlo a nákupy</option>
+        <option value="zdravie">💊 Zdravie</option>
+        <option value="zabava">🎮 Zábava a voľný čas</option>
+        <option value="predplatne">📱 Predplatné a služby</option>
+        <option value="oblecenie">👕 Oblečenie</option>
+        <option value="ine">📦 Iné</option>
       </select>
     </div>
+
+    <!-- Popis -->
     <div class="form-group">
-      <label data-i18n-first="expense_type_lbl">Typ <span class="tip-wrap"><span class="tip-icon" tabindex="0">?</span><span class="tip-box">Fixný = rovnaká suma každý mesiac (nájom, poistenie). Variabilný = mení sa mesiac od mesiaca (potraviny, pohonné hmoty).</span></span></label>
-      <select id="vyd-typ">
-        <option value="fixny" data-i18n="fixed_exp">🔒 Fixný (každý mesiac rovnaký)</option>
-        <option value="variabilny" data-i18n="variable_exp">📊 Variabilný (mení sa)</option>
-      </select>
+      <label>Popis výdavku</label>
+      <input type="text" id="vyd-name" placeholder="napr. Nájom, Tesco, Netflix..." oninput="clearFieldError('vyd-name')">
+      <div class="field-error-msg" id="vyd-name-err">⚠ Zadaj popis</div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div class="form-group">
-        <label data-i18n-first="expense_plan">Plánovaná suma (€/mes) <span class="tip-wrap"><span class="tip-icon" tabindex="0">?</span><span class="tip-box">Koľko si plánuješ minúť na túto položku mesačne. Nastavíš si rozpočet a appka sleduje či ho dodržíš.</span></span></label>
-        <input type="number" id="vyd-plan-suma" placeholder="0">
-      </div>
-      <div class="form-group">
-        <label data-i18n-first="expense_real">Skutočná suma (€/mes) <span class="tip-wrap"><span class="tip-icon" tabindex="0">?</span><span class="tip-box">Koľko si skutočne minul tento mesiac. Porovná sa s plánom – uvidíš úsporu alebo prekročenie.</span></span></label>
-        <input type="number" id="vyd-skutok-suma" placeholder="0">
-      </div>
-    </div>
+
+    <!-- Suma -->
     <div class="form-group">
-      <label data-i18n="note_lbl">Poznámka</label>
+      <label>Suma (€)</label>
+      <input type="number" id="vyd-suma" placeholder="0" step="0.01">
+    </div>
+
+    <!-- Sporenie checkbox -->
+    <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+      <input type="checkbox" id="vyd-sporenie" style="width:18px;height:18px;accent-color:var(--accent2);cursor:pointer;">
+      <label for="vyd-sporenie" style="cursor:pointer;font-size:0.85rem;color:var(--text);">💰 Ide na sporenie / investovanie</label>
+    </div>
+
+    <!-- Poznámka -->
+    <div class="form-group">
+      <label>Poznámka</label>
       <textarea id="vyd-note" placeholder="Voliteľný popis..." style="min-height:50px;"></textarea>
     </div>
-    <button class="btn-primary" onclick="saveVydavok()" style="background:var(--accent3);" data-i18n="save_expense">ULOŽIŤ VÝDAVOK</button>
-    <button class="btn-small" id="vyd-cancel" style="display:none;width:100%;margin-top:8px;text-align:center;" onclick="closeVydavokModal()" data-i18n="cancel_btn">Zrušiť</button>
+
+    <button class="btn-primary" onclick="saveVydavok()" style="background:var(--accent3);">ULOŽIŤ VÝDAVOK</button>
+    <button class="btn-small" id="vyd-cancel" style="display:none;width:100%;margin-top:8px;text-align:center;" onclick="closeVydavokModal()">Zrušiť</button>
   </div>
 </div>
 
@@ -1240,7 +1258,7 @@ const ZB_AVATAR = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAMCAg
 let assets = JSON.parse(localStorage.getItem('assets_zd') || '[]');
 let pasiva = JSON.parse(localStorage.getItem('pasiva_zd') || '[]');
 let prijmy = JSON.parse(localStorage.getItem('prijmy_zd') || '[]');
-let vydavky = JSON.parse(localStorage.getItem('vydavky_zd') || '[]');
+let vydavky = migrateVydavky(JSON.parse(localStorage.getItem('vydavky_zd') || '[]'));
 let fy = 1;
 let goalYears = 5;
 
@@ -2562,16 +2580,52 @@ function renderPrijmy() {
 // ── END PRÍJMY ─────────────────────────────────────────
 
 // ── VÝDAVKY ───────────────────────────────────────────
-const vydavkyKat = [
-  {key:'byvanie',    label:()=>t('kat_byvanie'),    icon:'🏠', color:'#f0c040'},
-  {key:'doprava',    label:()=>t('kat_doprava'),    icon:'🚗', color:'#60b0f0'},
-  {key:'jedlo',      label:()=>t('kat_jedlo'),      icon:'🛒', color:'#4af0a0'},
-  {key:'zdravie',    label:()=>t('kat_zdravie'),    icon:'💊', color:'#f09040'},
-  {key:'zabava',     label:()=>t('kat_zabava'),     icon:'🎮', color:'#c070f0'},
-  {key:'predplatne', label:()=>t('kat_predplatne'), icon:'📱', color:'#f0e040'},
-  {key:'oblecenie',  label:()=>t('kat_oblecenie'),  icon:'👕', color:'#a0c4ff'},
-  {key:'ine',        label:()=>t('kat_ine'),        icon:'📦', color:'#7a7e94'},
-];
+// ── VÝDAVKY (Fix / Float) ──────────────────────────────
+// Migrácia starých dát: fixny→fix, variabilny→float, plan/skutok→suma, mesiac=current
+function migrateVydavky(arr) {
+  return arr.map(v => {
+    if (v.mesiac) return v; // already new format
+    return {
+      id: v.id,
+      name: v.name,
+      kat: v.kat || 'ine',
+      typ: (v.typ === 'fixny' || v.typ === 'fix') ? 'fix' : 'float',
+      mesiac: new Date().toISOString().slice(0,7),
+      suma: v.skutok || v.plan || 0,
+      sporenie: false,
+      note: v.note || '',
+      created: v.created || new Date().toISOString()
+    };
+  });
+}
+
+function currentMonth() { return new Date().toISOString().slice(0,7); }
+function monthShort(m) {
+  const names = ['Jan','Feb','Mar','Apr','Máj','Jún','Júl','Aug','Sep','Okt','Nov','Dec'];
+  return names[parseInt(m.slice(5,7))-1] || m;
+}
+
+function setVydTyp(typ) {
+  const fixBtn  = document.getElementById('vyd-btn-fix');
+  const floatBtn = document.getElementById('vyd-btn-float');
+  const hint = document.getElementById('vyd-typ-hint');
+  if (!fixBtn) return;
+  if (typ === 'fix') {
+    fixBtn.style.background = '#f05060'; fixBtn.style.color = '#fff'; fixBtn.style.borderColor = '#f05060';
+    floatBtn.style.background = 'transparent'; floatBtn.style.color = 'var(--muted)'; floatBtn.style.borderColor = 'var(--border)';
+    if (hint) hint.textContent = 'Fix = rovnaká suma každý mesiac (nájom, poistenie)';
+  } else {
+    floatBtn.style.background = '#60b0f0'; floatBtn.style.color = '#fff'; floatBtn.style.borderColor = '#60b0f0';
+    fixBtn.style.background = 'transparent'; fixBtn.style.color = 'var(--muted)'; fixBtn.style.borderColor = 'var(--border)';
+    if (hint) hint.textContent = 'Float = mení sa mesiac od mesiaca (potraviny, pohonné hmoty)';
+  }
+  fixBtn.dataset.active = typ === 'fix' ? '1' : '';
+}
+
+function getVydTyp() {
+  const btn = document.getElementById('vyd-btn-fix');
+  return btn && btn.dataset.active === '1' ? 'fix' : 'float';
+}
 
 function openAddVydavok() {
   resetVydavokForm();
@@ -2582,12 +2636,14 @@ function closeVydavokModal() {
   resetVydavokForm();
 }
 function resetVydavokForm() {
-  ['vyd-name','vyd-plan-suma','vyd-skutok-suma','vyd-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('vyd-kat').value='byvanie';
-  document.getElementById('vyd-typ').value='fixny';
-  document.getElementById('vyd-edit-id').value='';
-  document.getElementById('vydavok-form-title').textContent=t('new_expense');
-  document.getElementById('vyd-cancel').style.display='none';
+  ['vyd-name','vyd-suma','vyd-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const katEl = document.getElementById('vyd-kat'); if(katEl) katEl.value='sporenie';
+  const mesEl = document.getElementById('vyd-mesiac'); if(mesEl) mesEl.value = currentMonth();
+  const spoEl = document.getElementById('vyd-sporenie'); if(spoEl) spoEl.checked = false;
+  const editEl = document.getElementById('vyd-edit-id'); if(editEl) editEl.value = '';
+  const titleEl = document.getElementById('vydavok-form-title'); if(titleEl) titleEl.textContent = 'Nový výdavok';
+  const cancelEl = document.getElementById('vyd-cancel'); if(cancelEl) cancelEl.style.display = 'none';
+  setVydTyp('fix');
   clearFieldError('vyd-name');
 }
 
@@ -2599,9 +2655,10 @@ function saveVydavok() {
     id: editId || Date.now().toString(),
     name,
     kat: document.getElementById('vyd-kat').value,
-    typ: document.getElementById('vyd-typ').value,
-    plan: parseFloat(document.getElementById('vyd-plan-suma').value)||0,
-    skutok: parseFloat(document.getElementById('vyd-skutok-suma').value)||0,
+    typ: getVydTyp(),
+    mesiac: document.getElementById('vyd-mesiac').value || currentMonth(),
+    suma: parseFloat(document.getElementById('vyd-suma').value) || 0,
+    sporenie: document.getElementById('vyd-sporenie').checked,
     note: document.getElementById('vyd-note').value.trim(),
     created: new Date().toISOString()
   };
@@ -2617,15 +2674,16 @@ function saveVydavok() {
 
 function editVydavok(id) {
   const v = vydavky.find(x=>x.id===id); if(!v) return;
-  document.getElementById('vyd-name').value=v.name;
-  document.getElementById('vyd-kat').value=v.kat;
-  document.getElementById('vyd-typ').value=v.typ;
-  document.getElementById('vyd-plan-suma').value=v.plan;
-  document.getElementById('vyd-skutok-suma').value=v.skutok;
-  document.getElementById('vyd-note').value=v.note||'';
-  document.getElementById('vyd-edit-id').value=v.id;
-  document.getElementById('vydavok-form-title').textContent=t('edit_expense');
-  document.getElementById('vyd-cancel').style.display='block';
+  document.getElementById('vyd-name').value = v.name;
+  document.getElementById('vyd-kat').value = v.kat;
+  document.getElementById('vyd-mesiac').value = v.mesiac || currentMonth();
+  document.getElementById('vyd-suma').value = v.suma || 0;
+  document.getElementById('vyd-sporenie').checked = !!v.sporenie;
+  document.getElementById('vyd-note').value = v.note || '';
+  document.getElementById('vyd-edit-id').value = v.id;
+  document.getElementById('vydavok-form-title').textContent = 'Upraviť výdavok';
+  document.getElementById('vyd-cancel').style.display = 'block';
+  setVydTyp(v.typ === 'fix' ? 'fix' : 'float');
   document.getElementById('vydavok-modal').classList.add('open');
 }
 
@@ -2637,244 +2695,331 @@ function deleteVydavok(id) {
 }
 
 function vydavokCard(v) {
-  const kat = vydavkyKat.find(k=>k.key===v.kat) || vydavkyKat[7];
-  const diff = v.plan - v.skutok;
-  const pct = v.plan > 0 ? Math.min(100, Math.round(v.skutok/v.plan*100)) : 0;
-  const overBudget = v.skutok > v.plan && v.plan > 0;
-  const hasBoth = v.plan > 0 && v.skutok > 0;
-  return `<div style="background:var(--card);border:1px solid ${overBudget?'var(--accent3)':'var(--border)'};border-radius:14px;margin-bottom:10px;overflow:hidden;">
-    <div style="height:4px;background:${kat.color};"></div>
-    <div style="padding:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+  const kat = vydavkyKat.find(k=>k.key===v.kat) || vydavkyKat[vydavkyKat.length-1];
+  const typColor = v.typ === 'fix' ? '#f05060' : '#60b0f0';
+  const typLabel = v.typ === 'fix' ? '🔒 Fix' : '🌊 Float';
+  return `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;">
+    <div style="height:3px;background:${kat.color};"></div>
+    <div style="padding:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:1.3rem;">${kat.icon}</span>
+          <span style="font-size:1.2rem;">${kat.icon}</span>
           <div>
-            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size: 0.95rem;">${v.name}</div>
-            <div style="font-size: 0.72rem;padding:2px 8px;border-radius:20px;background:${kat.color}22;color:${kat.color};display:inline-block;margin-top:2px;">${v.typ==='fixny'?t('fixed_badge_exp'):t('variable_badge_exp')}</div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;color:var(--text);">${v.name}</div>
+            <div style="font-size:0.7rem;color:var(--muted);margin-top:1px;">${monthShort(v.mesiac||'')} ${(v.mesiac||'').slice(0,4)} · <span style="color:${typColor};">${typLabel}</span>${v.sporenie?' · 💰':''}${v.note?` · ${v.note}`:''}</div>
           </div>
         </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px;">
-        <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;">
-          <div style="font-size: 0.7rem;color:var(--muted);margin-bottom:3px;">${t('exp_plan_lbl')}</div>
-          <div style="font-family:'Syne',sans-serif;font-size: 0.9rem;font-weight:700;color:var(--muted);">${fmt(v.plan)}</div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px;">
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--accent3);">${fmt(v.suma)}</div>
+          <div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">
+            <button onclick="editVydavok('${v.id}')" style="background:var(--border);border:none;border-radius:6px;padding:3px 8px;font-size:0.68rem;color:var(--muted);cursor:pointer;">✏️</button>
+            <button onclick="deleteVydavok('${v.id}')" style="background:rgba(240,80,96,0.12);border:none;border-radius:6px;padding:3px 8px;font-size:0.68rem;color:var(--accent3);cursor:pointer;">🗑️</button>
+          </div>
         </div>
-        <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;">
-          <div style="font-size: 0.7rem;color:var(--muted);margin-bottom:3px;">${t('exp_actual_lbl')}</div>
-          <div style="font-family:'Syne',sans-serif;font-size: 0.9rem;font-weight:700;color:${overBudget?'var(--accent3)':'var(--text)'};">${fmt(v.skutok)}</div>
-        </div>
-        <div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;">
-          <div style="font-size: 0.7rem;color:var(--muted);margin-bottom:3px;">${diff>0?t('exp_saving'):diff<0?t('exp_over'):t('exp_exact')}</div>
-          <div style="font-family:'Syne',sans-serif;font-size: 0.9rem;font-weight:700;color:${diff>0?'var(--accent2)':diff<0?'var(--accent3)':'var(--muted)'};">${diff>0?'+':''}${fmt(diff)}</div>
-        </div>
-      </div>
-      ${v.plan>0?`<div style="margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;font-size: 0.72rem;color:var(--muted);margin-bottom:3px;"><span>${t('exp_budget_usage')}</span><span style="color:${overBudget?'var(--accent3)':'var(--accent2)'};">${pct}%</span></div>
-        <div class="vyd-progress-mini"><div class="vyd-progress-mini-fill" style="width:${pct}%;background:${overBudget?'var(--accent3)':'var(--accent2)'};"></div></div>
-      </div>`:''}
-      ${v.note?`<div style="font-size: 0.77rem;color:var(--muted);font-style:italic;margin-bottom:8px;">📝 ${v.note}</div>`:''}
-      <div class="asset-actions">
-        <button class="btn-small" onclick="editVydavok('${v.id}')">${t('exp_edit_btn')}</button>
-        <button class="btn-small danger" onclick="deleteVydavok('${v.id}')">${t('exp_del_btn')}</button>
       </div>
     </div>
   </div>`;
 }
 
-function drawVydavkyCharts(totalPlan, totalSkutok, volny) {
-  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-  const dpr = window.devicePixelRatio || 1;
-
-  // DONUT – zostatok vs minuté
-  const donut = document.getElementById('vyd-donut');
-  if (donut) {
-    const S = 140;
-    donut.width = S*dpr; donut.height = S*dpr;
-    donut.style.width = S+'px'; donut.style.height = S+'px';
-    const ctx = donut.getContext('2d');
-    ctx.scale(dpr, dpr);
-    const cx = S/2, cy = S/2, r = 58, inner = 48;
-    const lw = r - inner;
-    const total = Math.max(totalSkutok + Math.max(volny,0), 1);
-    const minutePct = totalSkutok / total;
-    const zostatokPct = Math.max(volny,0) / total;
-
-    // background ring
-    ctx.beginPath(); ctx.arc(cx,cy,r-lw/2,0,Math.PI*2);
-    ctx.strokeStyle = isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
-    ctx.lineWidth = lw; ctx.stroke();
-
-    // minuté – červená
-    const startM = -Math.PI/2;
-    const endM = startM + minutePct * Math.PI*2;
-    ctx.beginPath(); ctx.arc(cx,cy,r-lw/2,startM,endM);
-    ctx.strokeStyle='#f05060'; ctx.lineWidth=lw;
-    ctx.lineCap='round'; ctx.stroke(); ctx.lineCap='butt';
-
-    // zostatok – zelená
-    if (zostatokPct > 0.01) {
-      ctx.beginPath(); ctx.arc(cx,cy,r-lw/2,endM+0.04,endM+zostatokPct*Math.PI*2);
-      ctx.strokeStyle='#4af0a0'; ctx.lineWidth=lw;
-      ctx.lineCap='round'; ctx.stroke(); ctx.lineCap='butt';
-    }
-
-    // center text
-    ctx.textAlign='center';
-    ctx.fillStyle = isDark?'#e8eaf0':'#1a1c2a';
-    ctx.font=`bold 13px IBM Plex Mono,monospace`;
-    const shortSkutok = totalSkutok>=1000?(Math.round(totalSkutok/100)/10)+'k':Math.round(totalSkutok)+'';
-    ctx.fillText(shortSkutok+'€', cx, cy+2);
-    ctx.font=`8px IBM Plex Mono,monospace`;
-    ctx.fillStyle='#f05060';
-    ctx.fillText(t('donut_spent'), cx, cy+14);
-
-    // update legend values
-    const ds = document.getElementById('vyd-donut-skutok');
-    const dz = document.getElementById('vyd-donut-zostatok');
-    if(ds) ds.textContent = fmt(totalSkutok);
-    if(dz) dz.textContent = fmt(Math.max(volny,0));
-  }
-
-  // BAR CHART – jeden graf: celkový plán vs skutočnosť
-  const bar = document.getElementById('vyd-bar');
-  if (!bar || !bar.parentElement) return;
-  const BW = Math.max(bar.parentElement.clientWidth, 150);
-  const BH = 90;
-  bar.width = BW*dpr; bar.height = BH*dpr;
-  bar.style.width = BW+'px'; bar.style.height = BH+'px';
-  const bctx = bar.getContext('2d');
-  bctx.scale(dpr, dpr);
-
-  const maxVal = Math.max(totalPlan, totalSkutok, 1);
-  const pL=20, pR=20, pT=10, pB=22;
-  const chartW = BW-pL-pR, chartH = BH-pT-pB;
-  const barW = Math.min(chartW*0.25, 60);
-  const cx = BW/2;
-
-  // Y gridlines
-  for(let g=0;g<=3;g++){
-    const y = pT+(g/3)*chartH;
-    bctx.strokeStyle=isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)';
-    bctx.lineWidth=1;
-    bctx.beginPath(); bctx.moveTo(pL,y); bctx.lineTo(BW-pR,y); bctx.stroke();
-    const val = maxVal*(1-g/3);
-    bctx.textAlign='right';
-    bctx.fillStyle=isDark?'rgba(122,126,148,0.7)':'rgba(136,144,170,0.7)';
-    bctx.font=`7px IBM Plex Mono,monospace`;
-    const lbl = val>=1000?(Math.round(val/100)/10)+'k':Math.round(val)+'';
-    bctx.fillText(lbl+'€', pL-3, y+3);
-  }
-
-  // Plán stĺpec – modrý (vľavo od stredu)
-  const hP = (totalPlan/maxVal)*chartH;
-  const xP = cx - barW - 6;
-  bctx.fillStyle='#40a0ff';
-  bctx.beginPath();
-  if(bctx.roundRect) bctx.roundRect(xP, pT+chartH-hP, barW, hP, [4,4,0,0]);
-  else bctx.rect(xP, pT+chartH-hP, barW, hP);
-  bctx.fill();
-
-  // Skutočnosť stĺpec – oranžový (vpravo od stredu)
-  const hS = (totalSkutok/maxVal)*chartH;
-  const xS = cx + 6;
-  bctx.fillStyle='#ff6400';
-  bctx.beginPath();
-  if(bctx.roundRect) bctx.roundRect(xS, pT+chartH-hS, barW, hS, [4,4,0,0]);
-  else bctx.rect(xS, pT+chartH-hS, barW, hS);
-  bctx.fill();
-
-  // Hodnoty nad stĺpcami
-  bctx.textAlign='center';
-  bctx.font=`bold 8px IBM Plex Mono,monospace`;
-  bctx.fillStyle='#40a0ff';
-  const lblP = totalPlan>=1000?(Math.round(totalPlan/100)/10)+'k€':Math.round(totalPlan)+'€';
-  bctx.fillText(lblP, xP+barW/2, pT+chartH-hP-4);
-  bctx.fillStyle='#ff6400';
-  const lblS = totalSkutok>=1000?(Math.round(totalSkutok/100)/10)+'k€':Math.round(totalSkutok)+'€';
-  bctx.fillText(lblS, xS+barW/2, pT+chartH-hS-4);
-
-  // X labels
-  bctx.font=`7px IBM Plex Mono,monospace`;
-  bctx.fillStyle=isDark?'rgba(122,126,148,0.8)':'rgba(136,144,170,0.8)';
-  bctx.fillText(t('plan_lbl'), xP+barW/2, BH-5);
-  bctx.fillText(t('actual_lbl'), xS+barW/2, BH-5);
+function vydKatCard(katKey, items, typ) {
+  const kat = vydavkyKat.find(k=>k.key===katKey) || vydavkyKat[vydavkyKat.length-1];
+  const cm = currentMonth();
+  const cmItems = items.filter(v=>v.mesiac===cm);
+  const cmTotal = cmItems.reduce((s,v)=>s+v.suma,0);
+  // months with data
+  const months = [...new Set(items.map(v=>v.mesiac))].sort().reverse().slice(0,6);
+  const typColor = typ === 'fix' ? '#f05060' : '#60b0f0';
+  return `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;cursor:pointer;" onclick="toggleVydKatDetail('vkd-${typ}-${katKey}')">
+    <div style="height:3px;background:${kat.color};"></div>
+    <div style="padding:10px 12px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:1.1rem;">${kat.icon}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${kat.label()}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:800;color:${typColor};">${fmt(cmTotal)}</div>
+        </div>
+        <div style="font-size:0.65rem;color:var(--muted);">${items.length}×</div>
+      </div>
+      <div id="vkd-${typ}-${katKey}" style="display:none;margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">
+        ${months.map(m=>{
+          const mItems = items.filter(v=>v.mesiac===m);
+          const mTotal = mItems.reduce((s,v)=>s+v.suma,0);
+          const isCurrentMo = m===cm;
+          return `<div style="margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+              <span style="font-size:0.68rem;color:${isCurrentMo?'var(--accent)':'var(--muted)'};font-weight:${isCurrentMo?700:400};">${monthShort(m)} ${m.slice(0,4)}</span>
+              <span style="font-size:0.78rem;font-weight:700;color:${typColor};">${fmt(mTotal)}</span>
+            </div>
+            ${mItems.map(v=>`<div style="font-size:0.68rem;color:var(--muted);padding-left:8px;display:flex;justify-content:space-between;">
+              <span>${v.name}${v.sporenie?' 💰':''}</span>
+              <span style="display:flex;gap:4px;align-items:center;">${fmt(v.suma)}
+                <button onclick="event.stopPropagation();editVydavok('${v.id}')" style="background:var(--border);border:none;border-radius:4px;padding:1px 5px;font-size:0.6rem;color:var(--muted);cursor:pointer;">✏</button>
+                <button onclick="event.stopPropagation();deleteVydavok('${v.id}')" style="background:rgba(240,80,96,0.1);border:none;border-radius:4px;padding:1px 5px;font-size:0.6rem;color:var(--accent3);cursor:pointer;">✕</button>
+              </span>
+            </div>`).join('')}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
 }
 
-function renderVydavky() {
-  const totalPlan = vydavky.reduce((s,v)=>s+v.plan,0);
-  const totalSkutok = vydavky.reduce((s,v)=>s+v.skutok,0);
-  const diff = totalPlan - totalSkutok;
-  const pct = totalPlan>0 ? Math.min(100,Math.round(totalSkutok/totalPlan*100)) : 0;
-
-  // Total income for free cashflow calc
-  const totalIncome = prijmy.reduce((s,p)=>s+getPrijemCurrentSuma(p),0) +
-    assets.reduce((s,a)=>s+(a.income||0)-(a.costs||0),0);
-  const totalSplatky = pasiva.reduce((s,p)=>s+(p.payment||0),0);
-  const volny = totalIncome - totalSkutok - totalSplatky;
-
-  const vp=document.getElementById('vyd-plan'); if(vp) vp.textContent=fmt(totalPlan);
-  const vs=document.getElementById('vyd-skutok'); if(vs) vs.textContent=fmt(totalSkutok);
-  const vr=document.getElementById('vyd-rozdiel');
-  if(vr){ vr.textContent=(diff>=0?'+':'')+fmt(diff); vr.style.color=diff>=0?'var(--accent2)':'var(--accent3)'; }
-  const vv=document.getElementById('vyd-volny');
-  if(vv){ vv.textContent=fmt(volny); vv.style.color=volny>=0?'var(--accent2)':'var(--accent3)'; }
-
-  // Draw charts
-  setTimeout(()=>{ drawVydavkyCharts(totalPlan, totalSkutok, volny); }, 50);
-
-  // Tiles
-  const tilesEl = document.getElementById('vydavky-tiles');
-  if (!tilesEl) return;
-
-  const activeCats = vydavkyKat.filter(k=>vydavky.some(v=>v.kat===k.key));
-  if (!activeCats.length) {
-    tilesEl.innerHTML = emptyState(
-      '🎯',
-      t('set_budget'),
-      t('exp_empty_desc'),
-      t('add_first_expense'),
-      'openAddVydavok()',
-      'var(--accent3)',
-      t('exp_empty_quote')
-    );
-    return;
-  }
-
-  tilesEl.innerHTML = `<div class="pasiva-tiles-grid">` +
-    activeCats.map(k=>{
-      const items = vydavky.filter(v=>v.kat===k.key);
-      const katPlan = items.reduce((s,v)=>s+v.plan,0);
-      const katSkutok = items.reduce((s,v)=>s+v.skutok,0);
-      const katPct = katPlan>0 ? Math.min(100,Math.round(katSkutok/katPlan*100)) : 0;
-      const over = katSkutok > katPlan && katPlan > 0;
-      return `<div class="vyd-tile" onclick="showVydavkyDetail('${k.key}')" style="border-color:${over?'var(--accent3)':'var(--border)'}">
-        <div style="height:3px;background:${k.color};"></div>
-        <div class="vyd-tile-body">
-          <div style="position:absolute;top:10px;right:10px;background:var(--border);border-radius:10px;padding:2px 7px;font-size: 0.72rem;color:var(--muted);">${items.length}×</div>
-          <div class="vyd-tile-icon">${k.icon}</div>
-          <div class="vyd-tile-name">${k.label()}</div>
-          <div class="vyd-tile-plan">${t('exp_plan_tile')}: ${fmt(katPlan)}</div>
-          <div class="vyd-tile-skutok" style="color:${over?'var(--accent3)':k.color}">${fmt(katSkutok)}</div>
-          <div class="vyd-progress-mini"><div class="vyd-progress-mini-fill" style="width:${katPct}%;background:${over?'var(--accent3)':'var(--accent2)'};"></div></div>
-        </div>
-      </div>`;
-    }).join('') + `</div>`;
+function toggleVydKatDetail(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display==='none' ? 'block' : 'none';
 }
 
 function showVydavkyDetail(kat) {
   const k = vydavkyKat.find(x=>x.key===kat);
   const items = vydavky.filter(v=>v.kat===kat);
   document.getElementById('vydavky-detail-title').textContent = `${k.icon} ${k.label()}`;
-  document.getElementById('vydavky-detail-list').innerHTML = items.map(vydavokCard).join('');
-  document.getElementById('vydavky-tiles').style.display='none';
+  document.getElementById('vydavky-detail-list').innerHTML = items.sort((a,b)=>(b.mesiac||'').localeCompare(a.mesiac||'')).map(vydavokCard).join('');
   document.getElementById('vydavky-detail').style.display='block';
 }
 
 function closeVydavkyDetail() {
-  document.getElementById('vydavky-tiles').style.display='block';
   document.getElementById('vydavky-detail').style.display='none';
   renderVydavky();
 }
+// ── END VÝDAVKY ────────────────────────────────────────
+const vydavkyKat = [
+  {key:'sporenie',   label:()=>t('kat_sporenie'),   icon:'🏦', color:'#4af0a0'},
+  {key:'invest',     label:()=>t('kat_invest'),     icon:'📈', color:'#f0c040'},
+  {key:'poistenie',  label:()=>t('kat_poistenie'),  icon:'🛡️', color:'#c070f0'},
+  {key:'byvanie',    label:()=>t('kat_byvanie'),    icon:'🏠', color:'#60b0f0'},
+  {key:'doprava',    label:()=>t('kat_doprava'),    icon:'🚗', color:'#a0c4ff'},
+  {key:'jedlo',      label:()=>t('kat_jedlo'),      icon:'🛒', color:'#f09040'},
+  {key:'zdravie',    label:()=>t('kat_zdravie'),    icon:'💊', color:'#f0e040'},
+  {key:'zabava',     label:()=>t('kat_zabava'),     icon:'🎮', color:'#c070f0'},
+  {key:'predplatne', label:()=>t('kat_predplatne'), icon:'📱', color:'#f0e040'},
+  {key:'oblecenie',  label:()=>t('kat_oblecenie'),  icon:'👕', color:'#a0c4ff'},
+  {key:'ine',        label:()=>t('kat_ine'),        icon:'📦', color:'#7a7e94'},
+];
+
+function renderVydavky() {
+  const cm = currentMonth();
+  const year = cm.slice(0,4);
+
+  // Update dashboard totals (backward compat)
+  const totalSkutok = vydavky.filter(v=>v.mesiac===cm).reduce((s,v)=>s+v.suma,0);
+  const totalIncome = prijmy.reduce((s,p)=>s+getPrijemCurrentSuma(p),0) +
+    assets.reduce((s,a)=>s+(a.income||0)-(a.costs||0),0);
+  const totalSplatky = pasiva.reduce((s,p)=>s+(p.payment||0),0);
+
+  // ── Year label
+  const ylbl = document.getElementById('vyd-year-lbl');
+  if(ylbl) ylbl.textContent = year;
+
+  // ── Line chart: Jan–Dec spotreba
+  setTimeout(()=>drawVydLineChart(year), 50);
+
+  // ── Donut: Fix vs Float vs Sporenie (current month)
+  const fixSum   = vydavky.filter(v=>v.mesiac===cm && v.typ==='fix'   && !v.sporenie).reduce((s,v)=>s+v.suma,0);
+  const floatSum = vydavky.filter(v=>v.mesiac===cm && v.typ==='float' && !v.sporenie).reduce((s,v)=>s+v.suma,0);
+  const spoSum   = vydavky.filter(v=>v.mesiac===cm && v.sporenie).reduce((s,v)=>s+v.suma,0);
+  const total3 = fixSum + floatSum + spoSum || 1;
+  const pctFix   = Math.round(fixSum/total3*100);
+  const pctFloat = Math.round(floatSum/total3*100);
+  const pctSpo   = 100 - pctFix - pctFloat;
+
+  const setTxt = (id, val) => { const e=document.getElementById(id); if(e) e.textContent=val; };
+  setTxt('vyd-fix-val',   fmt(fixSum));
+  setTxt('vyd-fix-pct',   pctFix+'%');
+  setTxt('vyd-float-val', fmt(floatSum));
+  setTxt('vyd-float-pct', pctFloat+'%');
+  setTxt('vyd-spo-val',   fmt(spoSum));
+  setTxt('vyd-spo-pct',   pctSpo+'%');
+  setTxt('vyd-fix-total-lbl',   fmt(fixSum));
+  setTxt('vyd-float-total-lbl', fmt(floatSum));
+  setTimeout(()=>drawVydDonut(fixSum, floatSum, spoSum), 50);
+
+  // ── Posledné 3 Float
+  const lastFloat = vydavky
+    .filter(v=>v.typ==='float')
+    .sort((a,b)=>b.created.localeCompare(a.created))
+    .slice(0,3);
+  const lfEl = document.getElementById('vyd-last-float');
+  if(lfEl) {
+    if(!lastFloat.length) {
+      lfEl.innerHTML = '<div style="font-size:0.78rem;color:var(--muted);text-align:center;padding:10px;">Zatiaľ žiadne Float výdavky</div>';
+    } else {
+      lfEl.innerHTML = lastFloat.map(v=>{
+        const kat = vydavkyKat.find(k=>k.key===v.kat)||vydavkyKat[vydavkyKat.length-1];
+        return `<div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-left:3px solid #60b0f0;border-radius:10px;padding:9px 12px;margin-bottom:7px;">
+          <span style="font-size:1.1rem;">${kat.icon}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.name}</div>
+            <div style="font-size:0.68rem;color:var(--muted);">${monthShort(v.mesiac||'')} ${(v.mesiac||'').slice(0,4)}${v.sporenie?' · 💰':''}</div>
+          </div>
+          <div style="font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:800;color:#60b0f0;flex-shrink:0;">${fmt(v.suma)}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // ── Fix & Float stĺpce (kategórie s históriou)
+  const fixCats   = vydavkyKat.filter(k=>vydavky.some(v=>v.kat===k.key && v.typ==='fix'));
+  const floatCats = vydavkyKat.filter(k=>vydavky.some(v=>v.kat===k.key && v.typ==='float'));
+
+  const fixCol   = document.getElementById('vyd-fix-col');
+  const floatCol = document.getElementById('vyd-float-col');
+
+  if(fixCol) {
+    fixCol.innerHTML = fixCats.length
+      ? fixCats.map(k=>vydKatCard(k.key, vydavky.filter(v=>v.kat===k.key&&v.typ==='fix'), 'fix')).join('')
+      : '<div style="font-size:0.75rem;color:var(--muted);text-align:center;padding:12px;">Žiadne Fix výdavky</div>';
+  }
+  if(floatCol) {
+    floatCol.innerHTML = floatCats.length
+      ? floatCats.map(k=>vydKatCard(k.key, vydavky.filter(v=>v.kat===k.key&&v.typ==='float'), 'float')).join('')
+      : '<div style="font-size:0.75rem;color:var(--muted);text-align:center;padding:12px;">Žiadne Float výdavky</div>';
+  }
+}
+
+function drawVydLineChart(year) {
+  const canvas = document.getElementById('vyd-line');
+  if(!canvas || !canvas.parentElement) return;
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.max(canvas.parentElement.clientWidth - 28, 200);
+  const H = 110;
+  canvas.width = W*dpr; canvas.height = H*dpr;
+  canvas.style.width = W+'px'; canvas.style.height = H+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const months = Array.from({length:12},(_,i)=>`${year}-${String(i+1).padStart(2,'0')}`);
+  const curM = currentMonth();
+  const curIdx = months.indexOf(curM);
+
+  // 4 series
+  const series = [
+    { key:'total',     label:'Celkové', color:'#f05060', dash:[], lw:2,
+      vals: months.map(m=>vydavky.filter(v=>v.mesiac===m).reduce((s,v)=>s+v.suma,0)) },
+    { key:'sporenie',  label:'Sporenie', color:'#4af0a0', dash:[4,3], lw:1.5,
+      vals: months.map(m=>vydavky.filter(v=>v.mesiac===m&&v.kat==='sporenie').reduce((s,v)=>s+v.suma,0)) },
+    { key:'invest',    label:'Investovanie', color:'#f0c040', dash:[4,3], lw:1.5,
+      vals: months.map(m=>vydavky.filter(v=>v.mesiac===m&&v.kat==='invest').reduce((s,v)=>s+v.suma,0)) },
+    { key:'poistenie', label:'Poistenie', color:'#c070f0', dash:[4,3], lw:1.5,
+      vals: months.map(m=>vydavky.filter(v=>v.mesiac===m&&v.kat==='poistenie').reduce((s,v)=>s+v.suma,0)) },
+  ];
+
+  const allVals = series.flatMap(s=>s.vals);
+  const maxV = Math.max(...allVals, 1);
+  const pL=8, pR=8, pT=16, pB=4;
+  const cW = W-pL-pR, cH = H-pT-pB;
+  const step = cW/11;
+
+  // Grid
+  ctx.strokeStyle = isDark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.05)';
+  ctx.lineWidth=1; ctx.setLineDash([]);
+  [0.25,0.5,0.75,1].forEach(f=>{
+    const y=pT+cH*(1-f);
+    ctx.beginPath(); ctx.moveTo(pL,y); ctx.lineTo(W-pR,y); ctx.stroke();
+  });
+
+  // Fill under total
+  const tv = series[0].vals;
+  ctx.beginPath();
+  tv.forEach((v,i)=>{ const x=pL+i*step, y=pT+cH*(1-v/maxV); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.lineTo(pL+11*step,pT+cH); ctx.lineTo(pL,pT+cH); ctx.closePath();
+  const grad=ctx.createLinearGradient(0,pT,0,pT+cH);
+  grad.addColorStop(0,'rgba(240,80,96,0.18)'); grad.addColorStop(1,'rgba(240,80,96,0.01)');
+  ctx.fillStyle=grad; ctx.fill();
+
+  // Draw all lines
+  series.forEach(s=>{
+    ctx.setLineDash(s.dash);
+    ctx.beginPath();
+    s.vals.forEach((v,i)=>{ const x=pL+i*step, y=pT+cH*(1-v/maxV); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+    ctx.strokeStyle=s.color; ctx.lineWidth=s.lw; ctx.lineJoin='round'; ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // Dots on all series at current month
+  series.forEach(s=>{
+    const v=s.vals[curIdx];
+    if(curIdx<0) return;
+    const x=pL+curIdx*step, y=pT+cH*(1-v/maxV);
+    ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2);
+    ctx.fillStyle=s.color; ctx.fill();
+  });
+
+  // Current month label for total — with background pill
+  if(curIdx>=0) {
+    const v = series[0].vals[curIdx];
+    const x = pL+curIdx*step;
+    const y = pT+cH*(1-v/maxV);
+    const lbl = v>=1000?(Math.round(v/10)/100).toFixed(1)+'k€':Math.round(v)+'€';
+    ctx.font=`bold 9px IBM Plex Mono,monospace`;
+    const tw = ctx.measureText(lbl).width;
+    const bx = Math.min(Math.max(x-tw/2-4, pL), W-pR-tw-8);
+    const by = y-18;
+    // pill background
+    ctx.fillStyle=isDark?'rgba(30,32,48,0.9)':'rgba(255,255,255,0.92)';
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(bx,by,tw+8,13,[4]);
+    else ctx.rect(bx,by,tw+8,13);
+    ctx.fill();
+    ctx.strokeStyle='#f05060'; ctx.lineWidth=1; ctx.stroke();
+    // text
+    ctx.fillStyle='#f05060'; ctx.textAlign='left';
+    ctx.fillText(lbl, bx+4, by+10);
+    // update top-right total display
+    const el=document.getElementById('vyd-cur-total');
+    if(el) el.textContent=v>=1000?(Math.round(v/10)/100).toFixed(1)+'k €':Math.round(v)+' €';
+  }
+
+  // Month labels
+  const labelsEl = document.getElementById('vyd-month-labels');
+  const names=['J','F','M','A','M','J','J','A','S','O','N','D'];
+  if(labelsEl) labelsEl.innerHTML = names.map((n,i)=>`<span style="flex:1;text-align:center;${i===curIdx?'color:var(--accent3);font-weight:700;':''}">${n}</span>`).join('');
+
+  // Legend
+  const legEl = document.getElementById('vyd-line-legend');
+  if(legEl) legEl.innerHTML = series.map(s=>`<div style="display:flex;align-items:center;gap:4px;font-size:0.65rem;color:var(--muted);">
+    <div style="width:16px;height:2px;background:${s.color};border-radius:1px;flex-shrink:0;"></div>${s.label}
+  </div>`).join('');
+}
+
+function drawVydDonut(fixSum, floatSum, spoSum) {
+  const canvas = document.getElementById('vyd-donut2');
+  if(!canvas) return;
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  const dpr = window.devicePixelRatio||1;
+  const S=110;
+  canvas.width=S*dpr; canvas.height=S*dpr;
+  canvas.style.width=S+'px'; canvas.style.height=S+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const cx=S/2, cy=S/2, r=48, inner=36, lw=r-inner;
+  const total = fixSum+floatSum+spoSum||1;
+  const segs = [
+    {val:fixSum,   color:'#f05060'},
+    {val:floatSum, color:'#60b0f0'},
+    {val:spoSum,   color:'#4af0a0'},
+  ];
+  // background
+  ctx.beginPath(); ctx.arc(cx,cy,r-lw/2,0,Math.PI*2);
+  ctx.strokeStyle=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+  ctx.lineWidth=lw; ctx.stroke();
+  // segments
+  let angle=-Math.PI/2;
+  segs.forEach(s=>{
+    if(s.val<=0) return;
+    const sweep=(s.val/total)*Math.PI*2;
+    ctx.beginPath(); ctx.arc(cx,cy,r-lw/2,angle,angle+sweep);
+    ctx.strokeStyle=s.color; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke(); ctx.lineCap='butt';
+    angle+=sweep;
+  });
+  // center
+  ctx.textAlign='center'; ctx.fillStyle=isDark?'#e8eaf0':'#1a1c2a';
+  ctx.font=`bold 12px IBM Plex Mono,monospace`;
+  const t2=fixSum+floatSum+spoSum;
+  const lbl=t2>=1000?(Math.round(t2/100)/10)+'k€':Math.round(t2)+'€';
+  ctx.fillText(lbl,cx,cy+4);
+}
+
 // ── END VÝDAVKY ────────────────────────────────────────
 
 function renderCFBubble() {
@@ -3646,6 +3791,7 @@ const T = {
     exp_empty_desc:'Kto nekontroluje výdavky, nevie kde mu miznú peniaze. Zadaj plán a sleduj čo reálne míňaš – nájdeš priestor na investovanie.',
     exp_empty_quote:'Nie je dôležité koľko zarábaš – dôležité je koľko ostane po výdavkoch.',
     // Expense categories
+    kat_sporenie:'Sporenie', kat_invest:'Investovanie', kat_poistenie:'Poistenie',
     kat_byvanie:'Bývanie', kat_doprava:'Doprava', kat_jedlo:'Jedlo',
     kat_zdravie:'Zdravie', kat_zabava:'Zábava', kat_predplatne:'Predplatné',
     kat_oblecenie:'Oblečenie', kat_ine:'Iné',
@@ -3963,6 +4109,7 @@ const T = {
     exp_empty_desc:"Who doesn't track expenses doesn't know where money goes. Set a plan and track what you actually spend – find room to invest.",
     exp_empty_quote:"It's not how much you earn – it's how much is left after expenses.",
     // Expense categories
+    kat_sporenie:'Savings', kat_invest:'Investing', kat_poistenie:'Insurance',
     kat_byvanie:'Housing', kat_doprava:'Transport', kat_jedlo:'Food',
     kat_zdravie:'Health', kat_zabava:'Entertainment', kat_predplatne:'Subscriptions',
     kat_oblecenie:'Clothing', kat_ine:'Other',
@@ -4263,6 +4410,7 @@ const T = {
     exp_empty_desc:'Quem não controla despesas não sabe para onde vai o dinheiro. Defina um plano e acompanhe o que realmente gasta.',
     exp_empty_quote:'Não importa quanto você ganha – o que importa é quanto sobra após as despesas.',
     // Expense categories
+    kat_sporenie:'Poupança', kat_invest:'Investimento', kat_poistenie:'Seguro',
     kat_byvanie:'Moradia', kat_doprava:'Transporte', kat_jedlo:'Alimentação',
     kat_zdravie:'Saúde', kat_zabava:'Entretenimento', kat_predplatne:'Assinaturas',
     kat_oblecenie:'Vestuário', kat_ine:'Outros',
@@ -4611,7 +4759,7 @@ function renderDiagram() {
   // Update summary bar
   const totalPrijmy = prijmy.reduce((s,p)=>s+getPrijemCurrentSuma(p),0);
   const assetNet = assets.reduce((s,a)=>s+(a.income||0)-(a.costs||0),0);
-  const totalVydavky = vydavky.reduce((s,v)=>s+v.skutok,0);
+  const totalVydavky = vydavky.filter(v=>v.mesiac===currentMonth()).reduce((s,v)=>s+v.suma,0);
   const totalSplatky = pasiva.reduce((s,p)=>s+(p.payment||0),0);
   const volny = totalPrijmy + assetNet - totalVydavky - totalSplatky;
 
@@ -5022,7 +5170,7 @@ function diagramAutoGenerate() {
   const vydavkyKatAktivne = vydavkyKat.filter(k=>vydavky.some(v=>v.kat===k.key));
   vydavkyKatAktivne.forEach((k,i)=>{
     const items=vydavky.filter(v=>v.kat===k.key);
-    const suma=items.reduce((s,v)=>s+v.skutok,0);
+    const suma=items.filter(v=>v.mesiac===currentMonth()).reduce((s,v)=>s+v.suma,0);
     const id='vyd_'+k.key;
     diagNodes.push({id, type:'vydavok', label:k.label(),
       value:fmt(suma).replace(' €','€')+'/mes',
@@ -5109,8 +5257,9 @@ function buildFinancialContext() {
   const totalDebt = pasiva.reduce((s,p)=>s+(p.balance||0),0);
   const totalPayments = pasiva.reduce((s,p)=>s+(p.payment||0),0);
   const totalPrijmy = prijmy.reduce((s,p)=>s+getPrijemCurrentSuma(p),0);
-  const totalVydavkyPlan = vydavky.reduce((s,v)=>s+v.plan,0);
-  const totalVydavkySkutok = vydavky.reduce((s,v)=>s+v.skutok,0);
+  const cm2 = currentMonth();
+  const totalVydavkyPlan = vydavky.filter(v=>v.mesiac===cm2).reduce((s,v)=>s+v.suma,0);
+  const totalVydavkySkutok = totalVydavkyPlan;
   const volnyCashflow = totalPrijmy + netPassive - totalVydavkySkutok - totalPayments;
   const goalExp = parseFloat(localStorage.getItem('finfree_goal_exp')||'0');
   const goalTgt = parseFloat(localStorage.getItem('finfree_goal_tgt')||'0');
@@ -5120,7 +5269,7 @@ function buildFinancialContext() {
     aktiva: assets.map(a=>({ nazov:a.name, typ:a.type, hodnota:a.value||0, prijem:a.income||0, naklady:a.costs||0, cistyzisk:(a.income||0)-(a.costs||0) })),
     pasiva: pasiva.map(p=>({ nazov:p.name, typ:p.type, zostatok:p.balance||0, splatka:p.payment||0, urok:p.rate||0 })),
     prijmy: prijmy.map(p=>({ nazov:p.name, kvadrant:p.kvadrant, suma:getPrijemCurrentSuma(p) })),
-    vydavky: vydavky.map(v=>({ nazov:v.name, kategoria:v.kat, plan:v.plan, skutok:v.skutok, rozdiel:v.plan-v.skutok })),
+    vydavky: vydavky.map(v=>({ nazov:v.name, kategoria:v.kat, typ:v.typ, mesiac:v.mesiac, suma:v.suma, sporenie:v.sporenie })),
     suhrn: {
       hodnotaAktiv: totalAssetValue,
       pasivnyPrijem: netPassive,
@@ -5601,15 +5750,13 @@ function prefillFromReceipt(data) {
   resetVydavokForm();
   if (data.nazov) document.getElementById('vyd-name').value = data.nazov;
   if (data.suma) {
-    var s = parseFloat(data.suma).toFixed(2);
-    document.getElementById('vyd-skutok-suma').value = s;
-    document.getElementById('vyd-plan-suma').value = s;
+    document.getElementById('vyd-suma').value = parseFloat(data.suma).toFixed(2);
   }
   if (data.kategoria) {
-    var validKeys = ['byvanie','doprava','jedlo','zdravie','zabava','predplatne','oblecenie','ine'];
+    var validKeys = ['sporenie','invest','poistenie','byvanie','doprava','jedlo','zdravie','zabava','predplatne','oblecenie','ine'];
     if (validKeys.indexOf(data.kategoria) > -1) document.getElementById('vyd-kat').value = data.kategoria;
   }
-  document.getElementById('vyd-typ').value = 'variabilny';
+  setVydTyp('float');
   document.getElementById('vydavok-form-title').textContent = t('from_receipt_title');
   document.getElementById('vyd-cancel').style.display = 'block';
   document.getElementById('vydavok-modal').classList.add('open');
