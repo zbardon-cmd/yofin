@@ -985,7 +985,7 @@
     <!-- Kategória -->
     <div class="form-group">
       <label>Kategória</label>
-      <select id="vyd-kat">
+      <select id="vyd-kat" onchange="autoCheckSporenie(this.value)">
         <option value="sporenie">🏦 Sporenie</option>
         <option value="invest">📈 Investovanie</option>
         <option value="poistenie">🛡️ Poistenie</option>
@@ -2711,6 +2711,21 @@ function monthShort(m) {
   return names[parseInt(m.slice(5,7))-1] || m;
 }
 
+function autoCheckSporenie(kat) {
+  const cb = document.getElementById('vyd-sporenie');
+  if(!cb) return;
+  if(kat === 'sporenie' || kat === 'invest') {
+    cb.checked = true;
+    // Skryj checkbox label lebo je redundantný
+    const cbLabel = cb.parentElement;
+    if(cbLabel) cbLabel.style.opacity = '0.4';
+  } else {
+    // Neodškrtávaj automaticky — user mohol zaškrtnúť sám
+    const cbLabel = cb.parentElement;
+    if(cbLabel) cbLabel.style.opacity = '1';
+  }
+}
+
 function setVydTyp(typ) {
   const fixBtn  = document.getElementById('vyd-btn-fix');
   const floatBtn = document.getElementById('vyd-btn-float');
@@ -2764,7 +2779,7 @@ function saveVydavok() {
     typ: getVydTyp(),
     mesiac: document.getElementById('vyd-mesiac').value || currentMonth(),
     suma: parseFloat(document.getElementById('vyd-suma').value) || 0,
-    sporenie: document.getElementById('vyd-sporenie').checked,
+    sporenie: ['sporenie','invest'].includes(document.getElementById('vyd-kat').value) || document.getElementById('vyd-sporenie').checked,
     note: document.getElementById('vyd-note').value.trim(),
     created: new Date().toISOString()
   };
@@ -2790,6 +2805,7 @@ function editVydavok(id) {
   document.getElementById('vydavok-form-title').textContent = 'Upraviť výdavok';
   document.getElementById('vyd-cancel').style.display = 'block';
   setVydTyp(v.typ === 'fix' ? 'fix' : 'float');
+  autoCheckSporenie(v.kat);
   document.getElementById('vydavok-modal').classList.add('open');
 }
 
