@@ -1368,6 +1368,7 @@ function switchTab(name) {
   const tabEl = document.getElementById('tab-'+name);
   if (tabEl) tabEl.classList.add('active');
   const tabIdx = tabNames.indexOf(name);
+  localStorage.setItem('yofin_active_tab', name);
   const tabBtn = document.querySelectorAll('.tab')[tabIdx];
   if (tabBtn) tabBtn.classList.add('active');
   // Close speed dial when switching tabs
@@ -5029,7 +5030,13 @@ function cycleLang() {
 
 document.addEventListener('DOMContentLoaded', applyLang);
 
-renderDashboard();
+// ── Obnov posledný aktívny tab po refreshi
+const _savedTab = localStorage.getItem('yofin_active_tab');
+if(_savedTab && tabNames.includes(_savedTab)) {
+  switchTab(_savedTab);
+} else {
+  renderDashboard();
+}
 updateProUI();
 const hpb = document.getElementById('header-pro-badge');
 if (hpb) hpb.innerHTML = '';
