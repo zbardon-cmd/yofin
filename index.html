@@ -35,10 +35,28 @@
   }
   [data-theme="light"] {
     --bg: #f0f2f8; --surface: #ffffff; --card: #ffffff; --border: #dde1ee;
-    --text: #1a1c2a; --muted: #8890aa; --shadow: rgba(0,0,0,0.1);
+    --text: #1a2a6c; --muted: #4a6aa0; --shadow: rgba(0,0,0,0.1);
+    --text-h1: #0d1f5c; --text-h2: #1a3070; --text-h3: #2a4a90; --text-small: #3a5a99;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: var(--font-mono); min-height: 100vh; padding-bottom: 80px; transition: background 0.3s, color 0.3s; }
+
+  /* Light mode – blue text hierarchy */
+  [data-theme="light"] body { color: #1a2a6c; }
+  [data-theme="light"] .value,
+  [data-theme="light"] h1,
+  [data-theme="light"] .form-title { color: #0d1f5c !important; }
+  [data-theme="light"] .section-title,
+  [data-theme="light"] .asset-name,
+  [data-theme="light"] .asset-value { color: #1a3070 !important; }
+  [data-theme="light"] .label,
+  [data-theme="light"] .tab-lbl { color: #2a4a90 !important; }
+  [data-theme="light"] .tab { color: #4a6aa0; }
+  [data-theme="light"] .tab.active { color: var(--accent) !important; }
+  [data-theme="light"] [style*="color:var(--muted)"],
+  [data-theme="light"] [style*="color: var(--muted)"] { color: #3a5a99 !important; }
+  [data-theme="light"] [style*="color:var(--text)"],
+  [data-theme="light"] [style*="color: var(--text)"] { color: #1a2a6c !important; }
   @media (min-width: 600px) {
     body { max-width: 480px; margin: 0 auto; }
     header { max-width: 480px; margin: 0 auto; left: auto; transform: none; }
@@ -4713,6 +4731,12 @@ function applyLang() {
 function cycleLang() {
   LANG = LANGS[(LANGS.indexOf(LANG)+1) % LANGS.length];
   applyLang();
+  // Re-render active tab so all t() strings update
+  const active = document.querySelector('.section.active');
+  if (active) {
+    const name = active.id.replace('tab-', '');
+    switchTab(name);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', applyLang);
