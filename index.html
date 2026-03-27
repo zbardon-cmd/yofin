@@ -742,6 +742,44 @@
 </div>
 
 <!-- PRIJEM MODAL -->
+<!-- DELETE CONFIRM MODAL -->
+<div id="delete-confirm" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);border:1px solid var(--accent3);border-radius:14px;padding:24px;width:100%;max-width:320px;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:10px;">🗑</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;margin-bottom:4px;color:var(--text);" data-i18n="delete_title">Odstrániť položku?</div>
+    <div id="delete-item-name" style="font-size:0.85rem;color:var(--accent3);font-weight:700;margin-bottom:8px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;"></div>
+    <div style="font-size:0.84rem;color:var(--muted);margin-bottom:20px;" data-i18n="cannot_undo">Táto akcia sa nedá vrátiť späť.</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="hideDeleteConfirm()" class="btn-primary" style="background:var(--border);color:var(--text);" data-i18n="cancel_btn">Zrušiť</button>
+      <button onclick="doDelete()" class="btn-primary" style="background:var(--accent3);" data-i18n="delete_confirm_btn">Odstrániť</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPGRADE MODAL -->
+<div class="upgrade-modal" id="upgrade-modal">
+  <div class="upgrade-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--accent);">⬡ YoFiN FULL</div>
+      <button onclick="closeUpgrade()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+    </div>
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🚀</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text);margin-bottom:6px;" data-i18n="upg_title">Odomkni plný potenciál</div>
+      <div style="font-size:0.75rem;color:var(--muted);" data-i18n="upg_sub">Jednorazová platba – žiadne predplatné</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;"><span style="font-size:1.2rem;">♾️</span><span><strong style="color:var(--text)" data-i18n="upg_assets">Neobmedzené aktíva a pasíva</strong><br><span style="color:var(--muted);" data-i18n="upg_assets_free">Free: max 3 každého</span></span></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;"><span style="font-size:1.2rem;">📊</span><span><strong style="color:var(--text)" data-i18n="upg_forecast">Prognóza 2/3/5/10 rokov</strong><br><span style="color:var(--muted);" data-i18n="upg_forecast_free">Free: len 1 rok</span></span></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;"><span style="font-size:1.2rem;">☁️</span><span><strong style="color:var(--text)" data-i18n="upg_cloud">Cloud sync</strong><br><span style="color:var(--muted);" data-i18n="upg_cloud_free">Free: len lokálne uloženie</span></span></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;"><span style="font-size:1.2rem;">📄</span><span><strong style="color:var(--text)" data-i18n="upg_pdf">PDF/HTML export reportu</strong><br><span style="color:var(--muted);" data-i18n="upg_pdf_free">Free: len JSON záloha</span></span></div>
+      <div style="display:flex;align-items:center;gap:10px;font-size:0.78rem;"><span style="font-size:1.2rem;">📈</span><span><strong style="color:var(--text)" data-i18n="upg_chart">Graf aktíva vs dlhy</strong><br><span style="color:var(--muted);" data-i18n="upg_chart_free">Free: nedostupné</span></span></div>
+    </div>
+    <button class="btn-primary" onclick="activatePro()" style="margin-bottom:8px;" data-i18n="upg_btn">🔓 AKTIVOVAŤ PRO – 4,99 €</button>
+    <div style="text-align:center;font-size:0.74rem;color:var(--muted);" data-i18n="upg_demo">Demo: klikni pre aktiváciu bez platby</div>
+  </div>
+</div>
+
 <div class="upgrade-modal" id="prijem-modal">
   <div class="upgrade-inner">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
