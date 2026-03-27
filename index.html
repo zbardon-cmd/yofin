@@ -4811,12 +4811,14 @@ function applyLang() {
 function cycleLang() {
   LANG = LANGS[(LANGS.indexOf(LANG)+1) % LANGS.length];
   applyLang();
-  // Re-render active tab so all t() strings update
-  const active = document.querySelector('.section.active');
-  if (active) {
-    const name = active.id.replace('tab-', '');
-    switchTab(name);
-  }
+  // Re-render všetky taby — t() strings sa aktualizujú všade naraz
+  try { renderDashboard(); } catch(e) {}
+  try { renderAssets(); } catch(e) {}
+  try { renderPasiva(); } catch(e) {}
+  try { renderPrijmy(); } catch(e) {}
+  try { renderVydavky(); } catch(e) {}
+  try { renderGoals(); renderGoalsProAreas(); } catch(e) {}
+  try { renderForecast(); } catch(e) {}
 }
 
 document.addEventListener('DOMContentLoaded', applyLang);
