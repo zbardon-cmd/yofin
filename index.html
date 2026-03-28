@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>YoFiN – beta verzia 1.0</title>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <!-- Microsoft Clarity -->
 <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
@@ -307,9 +312,13 @@
   </div>
   <div class="header-right">
     <span id="date-display"></span>
+    <!-- Sync badge -->
+    <span id="sync-badge" style="display:none;font-size:0.65rem;color:var(--accent2);opacity:0.4;font-family:'IBM Plex Mono',monospace;transition:opacity 0.5s;">☁✓</span>
+    <!-- Auth button -->
+    <button id="auth-btn" onclick="openAuthModal()" title="Prihlásiť sa" style="background:none;border:1px solid var(--border);border-radius:8px;padding:2px 7px;font-size:0.82rem;color:var(--muted);cursor:pointer;transition:all 0.2s;">🔑</button>
     <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">☀️</button>
     <button onclick="cycleLang()" id="lang-btn" style="background:none;border:1px solid var(--border);border-radius:8px;padding:2px 7px;font-size:0.72rem;color:var(--muted);cursor:pointer;font-family:'IBM Plex Mono',monospace;transition:all 0.2s;" title="Switch language">SK</button>
-    <button onclick="showOnboardingForce()" style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#f0c040,#f0a000);border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:800;font-size: 0.82rem;color:#000;flex-shrink:0;box-shadow:0 2px 6px rgba(240,192,64,0.4);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="O aplikácii">i</button>
+    <button onclick="showOnboardingForce()" style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#f0c040,#f0a000);border:none;cursor:pointer;font-family:'Syne',sans-serif;font-weight:800;font-size:0.82rem;color:#000;flex-shrink:0;box-shadow:0 2px 6px rgba(240,192,64,0.4);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="O aplikácii">i</button>
   </div>
 </header>
 
@@ -344,6 +353,16 @@
 
   <!-- Hlavný obsah -->
   <div id="dash-content">
+    <!-- Záloha reminder banner -->
+    <div id="dash-backup-banner" style="display:none;background:rgba(240,192,64,0.08);border:1px solid rgba(240,192,64,0.3);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:1.3rem;">⚠️</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.78rem;font-weight:700;color:var(--accent);" id="dash-backup-msg">Nezálohoval si dáta</div>
+        <div style="font-size:0.68rem;color:var(--muted);" id="dash-backup-sub">localStorage sa môže vymazať pri clear cache</div>
+      </div>
+      <button onclick="exportJSONWithReminder()" style="background:var(--accent);color:#000;border:none;border-radius:8px;padding:6px 12px;font-size:0.72rem;font-weight:800;font-family:'Syne',sans-serif;cursor:pointer;white-space:nowrap;">⬇ Záloha</button>
+      <button onclick="dismissBackupBanner()" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;flex-shrink:0;">✕</button>
+    </div>
 
     <!-- ═══ DONUT SEKCIA ═══ -->
     <div class="form-card" style="margin-bottom:14px;padding:16px;position:relative;">
@@ -5932,7 +5951,215 @@ function closeFeedbackPopup(permanent) {
   document.getElementById('feedback-popup').style.display = 'none';
   if (permanent) localStorage.setItem('yofin_feedback_shown', '1');
 }
+
+// ═══════════════════════════════════════════════════════
+// FIREBASE CLOUD LAYER
+// ═══════════════════════════════════════════════════════
+let _fbUser = null;
+let _fbReady = false;
+let _saveTimer = null;
+
+function _fbDocRef() {
+  if(!_fbUser || !window._fbDb) return null;
+  return window._fbDb.collection('users').doc(_fbUser.uid).collection('data').doc('main');
+}
+
+async function cloudSave() {
+  const ref = _fbDocRef();
+  if(!ref) return;
+  try {
+    await ref.set({ assets, pasiva, prijmy, vydavky, updatedAt: new Date().toISOString(), version:2 });
+    _showSyncBadge('✓');
+  } catch(e) { _showSyncBadge('!'); }
+}
+
+async function cloudLoad() {
+  const ref = _fbDocRef();
+  if(!ref) return false;
+  try {
+    const snap = await ref.get();
+    if(!snap.exists) return false;
+    const data = snap.data();
+    if(data.assets)  { assets  = data.assets;  localStorage.setItem('assets_zd',  JSON.stringify(assets)); }
+    if(data.pasiva)  { pasiva  = data.pasiva;  localStorage.setItem('pasiva_zd',  JSON.stringify(pasiva)); }
+    if(data.prijmy)  { prijmy  = data.prijmy;  localStorage.setItem('prijmy_zd',  JSON.stringify(prijmy)); }
+    if(data.vydavky) { vydavky = migrateVydavky(data.vydavky); localStorage.setItem('vydavky_zd', JSON.stringify(vydavky)); }
+    return true;
+  } catch(e) { return false; }
+}
+
+function cloudListen() {
+  const ref = _fbDocRef();
+  if(!ref) return;
+  ref.onSnapshot(snap => {
+    if(!snap.exists) return;
+    const data = snap.data();
+    const age = Date.now() - new Date(data.updatedAt||0).getTime();
+    if(age < 3000) return; // naša vlastná zmena
+    if(data.assets)  { assets  = data.assets;  localStorage.setItem('assets_zd',  JSON.stringify(assets)); }
+    if(data.pasiva)  { pasiva  = data.pasiva;  localStorage.setItem('pasiva_zd',  JSON.stringify(pasiva)); }
+    if(data.prijmy)  { prijmy  = data.prijmy;  localStorage.setItem('prijmy_zd',  JSON.stringify(prijmy)); }
+    if(data.vydavky) { vydavky = migrateVydavky(data.vydavky); localStorage.setItem('vydavky_zd', JSON.stringify(vydavky)); }
+    try{ renderDashboard(); }catch(e){}
+    _showSyncBadge('↓');
+  });
+}
+
+function scheduleSave() {
+  if(!_fbUser) return;
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(cloudSave, 1500);
+}
+
+function _showSyncBadge(icon) {
+  const b = document.getElementById('sync-badge');
+  if(!b) return;
+  b.style.display = 'inline';
+  b.textContent = icon==='✓'?'☁✓': icon==='!'?'☁⚠':'☁↓';
+  b.style.color  = icon==='✓'?'var(--accent2)': icon==='!'?'var(--accent3)':'var(--accent)';
+  b.style.opacity='1';
+  setTimeout(()=>b.style.opacity='0.4', 3000);
+}
+
+async function loginGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try { await firebase.auth().signInWithPopup(provider); closeAuthModal(); }
+  catch(e) { alert('Google login zlyhal: '+e.message); }
+}
+
+async function loginEmail() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  if(!email||!pass) { alert('Zadaj email a heslo'); return; }
+  try {
+    try { await firebase.auth().signInWithEmailAndPassword(email, pass); }
+    catch(e) {
+      if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential') {
+        if(confirm('Účet neexistuje. Vytvoriť nový?')) {
+          await firebase.auth().createUserWithEmailAndPassword(email, pass);
+        } else return;
+      } else throw e;
+    }
+    closeAuthModal();
+  } catch(e) { alert('Prihlásenie zlyhalo: '+e.message); }
+}
+
+async function logout() {
+  await firebase.auth().signOut();
+  _fbUser = null;
+  _updateAuthUI(null);
+  document.getElementById('user-menu').style.display='none';
+}
+
+function _updateAuthUI(user) {
+  const btn   = document.getElementById('auth-btn');
+  const badge = document.getElementById('sync-badge');
+  if(btn) {
+    if(user) {
+      btn.textContent = user.photoURL
+        ? '' : (user.displayName||user.email||'👤').slice(0,2);
+      if(user.photoURL) {
+        btn.innerHTML = `<img src="${user.photoURL}" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;">`;
+      }
+      btn.title   = user.displayName||user.email||'Prihlásený';
+      btn.onclick = () => { document.getElementById('user-menu').style.display = document.getElementById('user-menu').style.display==='none'?'block':'none'; };
+      btn.style.borderColor = 'var(--accent2)';
+    } else {
+      btn.innerHTML  = '🔑';
+      btn.title      = 'Prihlásiť sa';
+      btn.onclick    = openAuthModal;
+      btn.style.borderColor = 'var(--border)';
+    }
+  }
+  if(badge) badge.style.display = user ? 'inline' : 'none';
+  // User menu info
+  const uName = document.getElementById('user-menu-name');
+  const uEmail= document.getElementById('user-menu-email');
+  if(uName)  uName.textContent  = user?.displayName||'';
+  if(uEmail) uEmail.textContent = user?.email||'';
+}
+
+function openAuthModal()  { document.getElementById('auth-modal').style.display='flex'; }
+function closeAuthModal() { document.getElementById('auth-modal').style.display='none'; }
+
+function initFirebase(config) {
+  if(!window.firebase) return;
+  if(!firebase.apps.length) firebase.initializeApp(config);
+  window._fbDb = firebase.firestore();
+
+  firebase.auth().onAuthStateChanged(async user => {
+    _fbUser = user;
+    _fbReady = true;
+    _updateAuthUI(user);
+    if(user) {
+      _showSyncBadge('↓');
+      const loaded = await cloudLoad();
+      if(loaded) { try{ renderDashboard(); }catch(e){} }
+      cloudListen();
+    }
+  });
+}
+
+// Obal localStorage.setItem — automatický cloud sync
+const _origLS = localStorage.setItem.bind(localStorage);
+localStorage.setItem = function(key, val) {
+  _origLS(key, val);
+  if(['assets_zd','pasiva_zd','prijmy_zd','vydavky_zd'].includes(key)) scheduleSave();
+};
+
+// ── SPUSTIŤ Firebase keď máš config:
+// initFirebase({ apiKey:"...", authDomain:"...", projectId:"...", ... });
+initFirebase({
+  apiKey: "AIzaSyBdoCgf9smYCU2LThtU2uZuQuxOT4E82tY",
+  authDomain: "yofin-00.firebaseapp.com",
+  projectId: "yofin-00",
+  storageBucket: "yofin-00.firebasestorage.app",
+  messagingSenderId: "169596294020",
+  appId: "1:169596294020:web:09abc288742e0b39ee83d1",
+  measurementId: "G-W10BGL7H12"
+});
 </script>
+<!-- AUTH MODAL -->
+<div id="auth-modal" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;width:100%;max-width:320px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--accent);">⬡ Prihlásiť sa</div>
+      <button onclick="closeAuthModal()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
+    </div>
+    <!-- Google -->
+    <button onclick="loginGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;font-size:0.88rem;font-weight:700;color:var(--text);cursor:pointer;margin-bottom:16px;font-family:'Syne',sans-serif;">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Pokračovať cez Google
+    </button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <div style="font-size:0.72rem;color:var(--muted);">alebo</div>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <!-- Email -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+      <input type="email" id="auth-email" placeholder="Email" style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:0.88rem;font-family:'IBM Plex Mono',monospace;" onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()">
+      <input type="password" id="auth-pass" placeholder="Heslo" style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:0.88rem;font-family:'IBM Plex Mono',monospace;" onkeydown="if(event.key==='Enter')loginEmail()">
+    </div>
+    <button onclick="loginEmail()" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:12px;padding:12px;font-size:0.88rem;font-weight:800;font-family:'Syne',sans-serif;cursor:pointer;">Prihlásiť / Registrovať</button>
+    <div style="font-size:0.68rem;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5;">Nový email = automatická registrácia.<br>Dáta sa synchronizujú na všetkých zariadeniach.</div>
+  </div>
+</div>
+
+<!-- USER MENU (po prihlásení) -->
+<div id="user-menu" style="display:none;position:fixed;top:60px;right:16px;z-index:600;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+  <div style="margin-bottom:12px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;color:var(--text);" id="user-menu-name"></div>
+    <div style="font-size:0.72rem;color:var(--muted);" id="user-menu-email"></div>
+  </div>
+  <div style="height:1px;background:var(--border);margin-bottom:12px;"></div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+    <span id="sync-badge-menu" style="font-size:0.75rem;color:var(--accent2);">☁ Synchronizované</span>
+  </div>
+  <button onclick="cloudSave().then(()=>alert('Záloha uložená do cloudu ✓'))" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:0.78rem;color:var(--accent2);font-weight:700;cursor:pointer;margin-bottom:8px;font-family:'Syne',sans-serif;">☁ Uložiť teraz</button>
+  <button onclick="logout()" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:0.78rem;color:var(--muted);cursor:pointer;font-family:'Syne',sans-serif;">Odhlásiť sa</button>
+</div>
+
 <!-- Fixné feedback tlačidlo -->
 <button onclick="document.getElementById('feedback-popup').style.display='flex'" 
   style="position:fixed;bottom:96px;right:16px;z-index:490;background:var(--surface);border:1px solid var(--accent);border-radius:50px;padding:8px 14px;font-size:0.72rem;color:var(--accent);font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;box-shadow:0 2px 12px rgba(240,192,64,0.2);">
