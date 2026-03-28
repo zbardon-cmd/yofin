@@ -354,7 +354,7 @@
   <!-- Hlavný obsah -->
   <div id="dash-content">
     <!-- Záloha reminder banner -->
-    <div id="dash-backup-banner" style="display:none;background:rgba(240,192,64,0.08);border:1px solid rgba(240,192,64,0.3);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+    <div id="dash-backup-banner" style="display:none;background:rgba(240,192,64,0.08);border:1px solid rgba(240,192,64,0.3);border-radius:12px;padding:10px 14px;margin-bottom:12px;align-items:center;gap:10px;">
       <span style="font-size:1.3rem;">⚠️</span>
       <div style="flex:1;min-width:0;">
         <div style="font-size:0.78rem;font-weight:700;color:var(--accent);" id="dash-backup-msg">Nezálohoval si dáta</div>
@@ -2320,9 +2320,35 @@ function exportJSON() {
   a.href = URL.createObjectURL(blob);
   a.download = 'yofin-zaloha-' + new Date().toISOString().slice(0,10) + '.json';
   a.click();
+  localStorage.setItem('yofin_last_backup', new Date().toISOString());
+  checkBackupBanner();
 }
 
-function importJSON() {
+function exportJSONWithReminder() { exportJSON(); }
+
+function dismissBackupBanner() {
+  localStorage.setItem('yofin_backup_dismissed', new Date().toISOString());
+  const bb = document.getElementById('dash-backup-banner');
+  if(bb) bb.style.display = 'none';
+}
+
+function checkBackupBanner() {
+  const bb = document.getElementById('dash-backup-banner');
+  if(!bb) return;
+  // Skryj ak je user prihlásený — cloud sync je aktívny
+  if(window._fbUser) { bb.style.display = 'none'; return; }
+  const hasData = assets.length || pasiva.length || prijmy.length || vydavky.length;
+  if(!hasData) { bb.style.display = 'none'; return; }
+  const dismissed = localStorage.getItem('yofin_backup_dismissed');
+  if(dismissed && (Date.now() - new Date(dismissed).getTime()) < 7*24*3600*1000) { bb.style.display='none'; return; }
+  bb.style.display = 'flex';
+  const lastBackup = localStorage.getItem('yofin_last_backup');
+  const msg = document.getElementById('dash-backup-msg');
+  if(msg) msg.textContent = !lastBackup ? 'Ešte si nezálohoval dáta' :
+    `Posledná záloha pred ${Math.floor((Date.now()-new Date(lastBackup).getTime())/(86400000))} dňami`;
+}
+
+
   document.getElementById('import-file').click();
 }
 
@@ -3384,6 +3410,7 @@ function renderDashboard() {
     drawDashMiniDonut('dash-spo-donut','dash-spo-milestone',spoSum,'#4af0a0','💰',spoPct+'% '+t('dash_from_income'));
     drawDashMiniDonut('dash-pas-donut','dash-pas-milestone',passiveNet,'#f0c040','📈',t('dash_from_assets'));
     try{ renderCFBubble(); }catch(e){}
+    checkBackupBanner();
   },60);
 }
 
