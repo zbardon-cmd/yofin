@@ -6095,9 +6095,15 @@ function initFirebase(config) {
     _updateAuthUI(user);
     if(user) {
       _showSyncBadge('↓');
+      // Skry backup banner — cloud sync je aktívny
+      const bb = document.getElementById('dash-backup-banner');
+      if(bb) bb.style.display = 'none';
       const loaded = await cloudLoad();
       if(loaded) { try{ renderDashboard(); }catch(e){} }
       cloudListen();
+      if(!loaded && (assets.length||pasiva.length||prijmy.length||vydavky.length)) {
+        cloudSave();
+      }
     }
   });
 }
