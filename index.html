@@ -6023,7 +6023,7 @@ function _showSyncBadge(icon) {
 
 async function loginGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  try { await firebase.auth().signInWithPopup(provider); closeAuthModal(); }
+  try { await firebase.auth().signInWithRedirect(provider); }
   catch(e) { alert('Google login zlyhal: '+e.message); }
 }
 
@@ -6086,6 +6086,8 @@ function initFirebase(config) {
   if(!window.firebase) return;
   if(!firebase.apps.length) firebase.initializeApp(config);
   window._fbDb = firebase.firestore();
+
+  firebase.auth().getRedirectResult().catch(e => console.warn('Redirect:', e));
 
   firebase.auth().onAuthStateChanged(async user => {
     _fbUser = user;
