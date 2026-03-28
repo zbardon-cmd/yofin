@@ -6059,16 +6059,16 @@ async function loginEmail() {
   const pass  = document.getElementById('auth-pass').value;
   if(!email||!pass) { alert('Zadaj email a heslo'); return; }
   try {
-    try { await firebase.auth().signInWithEmailAndPassword(email, pass); }
-    catch(e) {
-      if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential') {
-        if(confirm('Účet neexistuje. Vytvoriť nový?')) {
-          await firebase.auth().createUserWithEmailAndPassword(email, pass);
-        } else return;
-      } else throw e;
-    }
+    await firebase.auth().signInWithEmailAndPassword(email, pass);
     closeAuthModal();
-  } catch(e) { alert('Prihlásenie zlyhalo: '+e.message); }
+  } catch(e) {
+    if(e.code==='auth/user-not-found' || e.code==='auth/invalid-login-credentials' || e.code==='auth/invalid-credential') {
+      try {
+        await firebase.auth().createUserWithEmailAndPassword(email, pass);
+        closeAuthModal();
+      } catch(e2) { alert('Registrácia zlyhala: ' + e2.message); }
+    } else { alert('Prihlásenie zlyhalo: ' + e.message); }
+  }
 }
 
 async function logout() {
